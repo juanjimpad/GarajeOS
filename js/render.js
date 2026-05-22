@@ -165,17 +165,22 @@ export function renderCocheDetail(clienteKey, cocheKey) {
 
 function facturaRow(clienteKey, cocheKey, facturaKey, f) {
   const estadoClass = { Pendiente: 'badge-warning', Pagada: 'badge-success', Cancelada: 'badge-danger' }[f.estado] || '';
+  const metodoPagoIcon = { Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago] || '';
   return `
     <div class="factura-row" data-action="edit-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}">
-      <div class="factura-info">
-        <span class="factura-num">#${esc(f.numero) || facturaKey.slice(0, 6)}</span>
-        <span class="factura-concepto">${esc(f.concepto) || 'Sin concepto'}</span>
-        <span class="factura-fecha">${formatDate(f.fecha)}</span>
-      </div>
-      <div class="factura-right">
-        <span class="badge ${estadoClass}">${esc(f.estado) || 'Pendiente'}</span>
-        ${{ Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago] ? `<span class="factura-metodo" title="${f.metodoPago}">${{ Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago]}</span>` : ''}
+      <div class="factura-row-top">
+        <div class="factura-meta">
+          <span class="factura-num">#${esc(f.numero) || facturaKey.slice(0, 6)}</span>
+          <span class="factura-fecha">${formatDate(f.fecha)}</span>
+        </div>
         <span class="factura-total">${formatCurrency(f.total)}</span>
+      </div>
+      <div class="factura-row-bot">
+        <div class="factura-bot-left">
+          <span class="factura-concepto">${esc(f.concepto) || 'Sin concepto'}</span>
+          <span class="badge ${estadoClass}">${esc(f.estado) || 'Pendiente'}</span>
+          ${metodoPagoIcon ? `<span class="factura-metodo" title="${esc(f.metodoPago)}">${metodoPagoIcon}</span>` : ''}
+        </div>
         <button class="icon-btn danger-hover" data-action="delete-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}" title="Eliminar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
         </button>
@@ -233,16 +238,14 @@ function facturaItem({ clienteKey, cocheKey, facturaKey, factura, cliente, coche
   const avatarClass = { Pendiente: 'avatar-warning', Pagada: 'avatar-success', Cancelada: 'avatar-danger' }[factura.estado] || '';
   const metodoPagoIcon = { Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[factura.metodoPago] || '';
   return `
-    <li class="item-row" data-action="select-coche" data-cliente-key="${clienteKey}" data-key="${cocheKey}">
+    <li class="item-row factura-item" data-action="select-coche" data-cliente-key="${clienteKey}" data-key="${cocheKey}">
       <div class="item-avatar ${avatarClass}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       </div>
-      <div class="item-info">
+      <div class="factura-item-body">
         <span class="item-name">${esc(factura.concepto) || 'Sin concepto'}</span>
-        <span class="item-sub">${esc(cliente.nombre) || ''} · ${esc(coche.matricula) || ''}</span>
-      </div>
-      <div class="item-right-stack">
         <span class="item-total">${factura.total != null ? formatCurrency(factura.total) : '—'}</span>
+        <span class="item-sub">${esc(cliente.nombre) || ''} · ${esc(coche.matricula) || ''}</span>
         <span class="item-date">${metodoPagoIcon} ${formatDate(factura.fecha)}</span>
       </div>
     </li>`;
