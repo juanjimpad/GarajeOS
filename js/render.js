@@ -165,17 +165,20 @@ export function renderCocheDetail(clienteKey, cocheKey) {
 
 function facturaRow(clienteKey, cocheKey, facturaKey, f) {
   const estadoClass = { Pendiente: 'badge-warning', Pagada: 'badge-success', Cancelada: 'badge-danger' }[f.estado] || '';
+  const metodoPagoIcon = { Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago] || '';
   return `
     <div class="factura-row" data-action="edit-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}">
-      <div class="factura-info">
-        <span class="factura-num">#${esc(f.numero) || facturaKey.slice(0, 6)}</span>
+      <div class="factura-row-top">
         <span class="factura-concepto">${esc(f.concepto) || 'Sin concepto'}</span>
-        <span class="factura-fecha">${formatDate(f.fecha)}</span>
-      </div>
-      <div class="factura-right">
-        <span class="badge ${estadoClass}">${esc(f.estado) || 'Pendiente'}</span>
-        ${{ Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago] ? `<span class="factura-metodo" title="${f.metodoPago}">${{ Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago]}</span>` : ''}
         <span class="factura-total">${formatCurrency(f.total)}</span>
+      </div>
+      <div class="factura-row-bot">
+        <div class="factura-meta">
+          <span class="factura-num">#${esc(f.numero) || facturaKey.slice(0, 6)}</span>
+          <span class="factura-fecha">${formatDate(f.fecha)}</span>
+          <span class="badge ${estadoClass}">${esc(f.estado) || 'Pendiente'}</span>
+          ${metodoPagoIcon ? `<span class="factura-metodo" title="${esc(f.metodoPago)}">${metodoPagoIcon}</span>` : ''}
+        </div>
         <button class="icon-btn danger-hover" data-action="delete-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}" title="Eliminar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
         </button>

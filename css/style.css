@@ -634,15 +634,46 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+.factura-row { flex-direction: column; gap: 6px; }
 .factura-row:hover { box-shadow: var(--shadow-md); }
 
-.factura-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-.factura-num { font-family: monospace; font-size: 12px; color: var(--text-sub); flex-shrink: 0; }
-.factura-concepto { font-size: 14px; font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.factura-fecha { font-size: 12px; color: var(--text-sub); flex-shrink: 0; }
+.factura-row-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
 
-.factura-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.factura-total { font-size: 15px; font-weight: 700; }
+.factura-concepto {
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.factura-total { font-size: 15px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+
+.factura-row-bot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.factura-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.factura-num { font-family: monospace; font-size: 12px; color: var(--text-sub); }
+.factura-fecha { font-size: 12px; color: var(--text-sub); white-space: nowrap; }
 
 /* ── Badges ──────────────────────────────────────────────── */
 .badge {
