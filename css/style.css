@@ -855,6 +855,7 @@ input, select, textarea {
 
 input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 input::placeholder, textarea::placeholder { color: var(--text-placeholder); }
+input[type="date"] { min-width: 0; max-width: 100%; box-sizing: border-box; }
 
 select {
   appearance: none;
@@ -921,7 +922,7 @@ label {
 
 .modal-header h3 { font-size: 17px; font-weight: 700; }
 
-.modal-body { padding: 20px; }
+.modal-body { padding: 20px; overflow-x: hidden; }
 
 .modal-footer {
   display: flex;
