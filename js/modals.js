@@ -1,5 +1,5 @@
 import { el, todayISO, escapeHTML as esc } from './utils.js';
-import { CAR_BRANDS, BRAND_NAMES, FUEL_TYPES, FACTURA_ESTADOS, PAYMENT_METHODS } from './config.js';
+import { CAR_BRANDS, BRAND_NAMES, MOTO_BRANDS, MOTO_BRAND_NAMES, VEHICLE_TYPES, FUEL_TYPES, FACTURA_ESTADOS, PAYMENT_METHODS } from './config.js';
 
 function openModal(title, bodyHTML, onConfirm) {
   el('modal-title').textContent = title;
@@ -32,7 +32,9 @@ export function closeModal() {
 }
 
 function updateModelos(brand, select) {
-  const models = CAR_BRANDS[brand] || [];
+  const tipo = el('m-tipo')?.value || 'Coche';
+  const brands = tipo === 'Moto' ? MOTO_BRANDS : CAR_BRANDS;
+  const models = brands[brand] || [];
   const current = select.dataset.current || '';
   select.innerHTML = `<option value="">Seleccionar modelo</option>` +
     models.map(m => `<option value="${m}" ${m === current ? 'selected' : ''}>${m}</option>`).join('');
@@ -77,13 +79,20 @@ export function openClienteModal(existing, onSave) {
 export function openCocheModal(existing, onSave) {
   const isEdit = !!existing;
   const c = existing || {};
-  const brandOptions = BRAND_NAMES.map(b =>
+  const tipo = c.tipo || 'Coche';
+  const brandNames = tipo === 'Moto' ? MOTO_BRAND_NAMES : BRAND_NAMES;
+  const brandOptions = brandNames.map(b =>
     `<option value="${b}" ${b === c.marca ? 'selected' : ''}>${b}</option>`
   ).join('');
 
   openModal(
     isEdit ? 'Editar vehículo' : 'Nuevo vehículo',
     `<div class="form-grid">
+      <label>Tipo
+        <select id="m-tipo">
+          ${VEHICLE_TYPES.map(t => `<option value="${t}" ${t === tipo ? 'selected' : ''}>${t === 'Moto' ? '🏍️' : '🚗'} ${t}</option>`).join('')}
+        </select>
+      </label>
       <label>Matrícula *<input id="m-matricula" type="text" value="${esc(c.matricula)}" placeholder="Ej: 1234 ABC" style="text-transform:uppercase" /></label>
       <label>Marca *
         <select id="m-marca">
@@ -118,6 +127,7 @@ export function openCocheModal(existing, onSave) {
       if (!matricula || !marca) { alert('Matrícula y marca son obligatorias'); return Promise.resolve(); }
       const kms = parseInt(el('m-kms').value, 10);
       return onSave({
+        tipo: el('m-tipo').value,
         matricula,
         marca,
         modelo: el('m-modelo').value,
@@ -130,6 +140,17 @@ export function openCocheModal(existing, onSave) {
       });
     }
   );
+
+  const tipoSel = el('m-tipo');
+  const brandSel = el('m-marca');
+  const modelSel = el('m-modelo');
+
+  tipoSel.addEventListener('change', () => {
+    const names = tipoSel.value === 'Moto' ? MOTO_BRAND_NAMES : BRAND_NAMES;
+    brandSel.innerHTML = `<option value="">Seleccionar marca</option>` +
+      names.map(b => `<option value="${b}">${b}</option>`).join('');
+    modelSel.innerHTML = `<option value="">Seleccionar modelo</option>`;
+  });
 }
 
 // ── Factura modal ─────────────────────────────────────────

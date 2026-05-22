@@ -41,7 +41,7 @@ export function renderCochesList() {
   ul.innerHTML = allCoches.length
     ? allCoches.map(({ clienteKey, cocheKey, coche, clienteNombre }) => `
       <li class="item-row ${state.selectedCocheKey === cocheKey ? 'active' : ''}" data-action="select-coche" data-cliente-key="${clienteKey}" data-key="${cocheKey}">
-        <div class="item-avatar car-avatar">🚗</div>
+        <div class="item-avatar car-avatar">${coche.tipo === 'Moto' ? '🏍️' : '🚗'}</div>
         <div class="item-info">
           <span class="item-name">${esc(coche.marca) || ''} ${esc(coche.modelo) || ''}</span>
           <span class="item-sub">${esc(coche.matricula) || ''} · ${esc(clienteNombre) || ''}</span>
@@ -102,7 +102,7 @@ function cocheCard(clienteKey, cocheKey, c) {
   return `
     <div class="coche-card" data-action="select-coche" data-cliente-key="${clienteKey}" data-key="${cocheKey}">
       <div class="coche-card-header">
-        <span class="coche-icon">🚗</span>
+        <span class="coche-icon">${c.tipo === 'Moto' ? '🏍️' : '🚗'}</span>
         <div>
           <strong>${esc(c.marca) || ''} ${esc(c.modelo) || ''}</strong>
           <span class="coche-matricula">${esc(c.matricula) || 'Sin matrícula'}</span>
@@ -129,7 +129,7 @@ export function renderCocheDetail(clienteKey, cocheKey) {
 
   el('detail-content').innerHTML = `
     <div class="detail-header">
-      <div class="detail-avatar car-avatar-lg">🚗</div>
+      <div class="detail-avatar car-avatar-lg">${coche.tipo === 'Moto' ? '🏍️' : '🚗'}</div>
       <div class="detail-title-group">
         <h2>${esc(coche.marca) || ''} ${esc(coche.modelo) || ''}</h2>
         <p class="detail-subtitle">${esc(coche.matricula) || 'Sin matrícula'} · ${esc(cliente.nombre) || ''}</p>
