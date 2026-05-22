@@ -41,6 +41,9 @@ export const CAR_BRANDS = {
   'BYD': ['Atto 3', 'Han', 'Seal', 'Dolphin', 'Tang'],
 };
 
+  'Desconocido': ['Desconocido'],
+};
+
 export const BRAND_NAMES = Object.keys(CAR_BRANDS).sort();
 
 // Marcas y modelos de moto más vendidos en España (1994-2024)
@@ -73,6 +76,9 @@ export const MOTO_BRANDS = {
   'Vespa': ['Primavera 50', 'Primavera 125', 'Primavera 150', 'Sprint 50', 'Sprint 125', 'Sprint 150', 'GTS 125', 'GTS 150', 'GTS 300', 'GTV 300', 'LX 50', 'LX 125', 'GTS Super 300', 'Elettrica'],
   'Voge': ['300R', '300AC', '525R', '500R', '500DS', '500DSX', '650DS', '650DSX', '300RR'],
   'Yamaha': ['YZF-R1', 'YZF-R6', 'YZF-R3', 'YZF-R125', 'MT-07', 'MT-09', 'MT-10', 'MT-03', 'MT-125', 'Tracer 7', 'Tracer 9', 'Ténéré 700', 'Super Ténéré 1200', 'XSR700', 'XSR900', 'XSR125', 'TMAX 500', 'TMAX 530', 'TMAX 560', 'XMAX 125', 'XMAX 300', 'NMAX 125', 'Aerox 50', 'Aerox 155', 'FZ6', 'FZ1', 'FJR1300', 'TDM 900'],
+};
+
+  'Desconocido': ['Desconocido'],
 };
 
 export const MOTO_BRAND_NAMES = Object.keys(MOTO_BRANDS).sort();

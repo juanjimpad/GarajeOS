@@ -38,7 +38,8 @@ export function closeModal() {
 function getModelos(brand) {
   const tipo = el('m-tipo')?.value || 'Coche';
   const brands = tipo === 'Moto' ? MOTO_BRANDS : CAR_BRANDS;
-  return brands[brand] || [];
+  const models = (brands[brand] || []).filter(m => m !== 'Desconocido');
+  return [...models, 'Desconocido'];
 }
 
 function refreshCombobox(input, options) {
