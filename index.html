@@ -19,44 +19,6 @@
 </head>
 <body>
   <div id="app">
-    <div id="setup-screen" class="auth-screen">
-      <div class="auth-card setup-card">
-        <div class="auth-logo">
-          <span class="logo-icon">⚙️</span>
-          <h1>GarajeOS</h1>
-          <p class="auth-subtitle">Configuración necesaria</p>
-        </div>
-        <div class="setup-steps">
-          <div class="setup-step">
-            <span class="step-num">1</span>
-            <div>
-              <strong>Crea tu proyecto Firebase</strong>
-              <p>Ve a <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a>, activa <em>Realtime Database</em> y <em>Authentication</em>.</p>
-            </div>
-          </div>
-          <div class="setup-step">
-            <span class="step-num">2</span>
-            <div>
-              <strong>Configura las credenciales</strong>
-              <p><strong>Local:</strong> copia <code>js/firebase.example.js</code> → <code>js/firebase.js</code> y rellena tus credenciales.</p>
-              <p><strong>GitHub Pages:</strong> añade los 7 secretos en <em>Settings → Secrets → Actions</em>.</p>
-            </div>
-          </div>
-          <div class="setup-step">
-            <span class="step-num">3</span>
-            <div>
-              <strong>Recarga la página</strong>
-              <p>Una vez configurado, la app arrancará automáticamente.</p>
-            </div>
-          </div>
-        </div>
-        <div id="setup-error" class="setup-error hidden"></div>
-        <a href="https://github.com/juanjimpad/GarajeOS#despliegue" target="_blank" rel="noopener" class="btn btn-secondary btn-full" style="margin-top:8px;justify-content:center;text-decoration:none;">
-          Ver guía completa en GitHub
-        </a>
-      </div>
-    </div>
-
     <div id="auth-screen" class="auth-screen hidden">
       <div class="auth-card">
         <div class="auth-logo">

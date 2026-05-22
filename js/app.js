@@ -8,11 +8,7 @@ import { el } from './utils.js';
 initTheme();
 setupStaticUI();
 
-// Intenta cargar Firebase de forma dinámica — captura el error si falta configuración
-initApp().catch(err => {
-  console.error('[GarajeOS] Error de inicialización:', err);
-  showSetupError(err);
-});
+initApp().catch(err => console.error('[GarajeOS] Error de inicialización:', err));
 
 async function initApp() {
   // Import dinámico: si firebase.js no existe o las credenciales son inválidas, lanza aquí
@@ -37,14 +33,12 @@ async function initApp() {
   onAuthStateChanged(auth, user => {
     if (user) {
       state.currentUser = user;
-      el('setup-screen').classList.add('hidden');
       el('auth-screen').classList.add('hidden');
       el('main-app').classList.remove('hidden');
       renderUserChip(user);
       startListeners(user.uid);
     } else {
       state.currentUser = null;
-      el('setup-screen').classList.add('hidden');
       el('auth-screen').classList.remove('hidden');
       el('main-app').classList.add('hidden');
       if (unsubClientes) { unsubClientes(); unsubClientes = null; }
@@ -295,18 +289,6 @@ function renderUserChip(user) {
     avatarEl.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
   }
   nameEl.textContent = user.displayName || user.email || '';
-}
-
-function showSetupError(err) {
-  const errEl = el('setup-error');
-  if (!errEl) return;
-  const msg = err?.code === 'auth/invalid-api-key' || err?.message?.includes('API key')
-    ? 'Las credenciales de Firebase no son válidas.'
-    : err?.message?.includes('Failed to fetch') || err?.message?.includes('404')
-    ? 'No se encontró el fichero <code>js/firebase.js</code>.'
-    : `Error: ${err?.message || err}`;
-  errEl.innerHTML = `⚠️ ${msg}`;
-  errEl.classList.remove('hidden');
 }
 
 function friendlyAuthError(code) {
