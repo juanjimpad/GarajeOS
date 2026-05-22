@@ -1,14 +1,59 @@
 // Imports sin dependencia de Firebase — siempre seguros
 import { initTheme, setTheme } from './theme.js';
 import { state } from './state.js';
-import { renderClientesList, renderCochesList, renderClienteDetail, renderCocheDetail, showEmptyState } from './render.js';
+import { renderClientesList, renderCochesList, renderClienteDetail, renderCocheDetail, renderFacturasList, clearDetail } from './render.js';
 import { openClienteModal, openCocheModal, openFacturaModal, openConfirm, closeModal } from './modals.js';
-import { el } from './utils.js';
+import { el, generateFacturaNumber } from './utils.js';
 
 initTheme();
 setupStaticUI();
 
 initApp().catch(err => console.error('[GarajeOS] Error de inicialización:', err));
+
+// ── Navegación ────────────────────────────────────────────
+
+function navigate(view) {
+  state.viewHistory.push(view);
+  renderCurrentView();
+  updateViewNav();
+  el('view-detail').classList.add('active');
+}
+
+function goBack() {
+  state.viewHistory.pop();
+  const current = state.viewHistory[state.viewHistory.length - 1];
+  if (current === 'list') {
+    el('view-detail').classList.remove('active');
+    clearDetail();
+    state.selectedClienteKey = null;
+    state.selectedCocheKey = null;
+    renderClientesList();
+    renderCochesList();
+  } else {
+    state.selectedCocheKey = null;
+    renderCurrentView();
+    updateViewNav();
+  }
+}
+
+function renderCurrentView() {
+  const current = state.viewHistory[state.viewHistory.length - 1];
+  if (current === 'cliente') renderClienteDetail(state.selectedClienteKey);
+  else if (current === 'coche') renderCocheDetail(state.selectedClienteKey, state.selectedCocheKey);
+}
+
+function updateViewNav() {
+  const current = state.viewHistory[state.viewHistory.length - 1];
+  const prev = state.viewHistory[state.viewHistory.length - 2];
+  const label = el('back-label');
+  if (current === 'cliente') {
+    label.textContent = 'Clientes';
+  } else if (current === 'coche') {
+    label.textContent = prev === 'cliente'
+      ? (state.clientes[state.selectedClienteKey]?.nombre || 'Cliente')
+      : 'Volver';
+  }
+}
 
 async function initApp() {
   // Import dinámico: si firebase.js no existe o las credenciales son inválidas, lanza aquí
@@ -51,8 +96,10 @@ async function initApp() {
       state.clientes = clientes;
       renderClientesList();
       renderCochesList();
-      if (state.selectedClienteKey) renderClienteDetail(state.selectedClienteKey);
-      if (state.selectedCocheKey) renderCocheDetail(state.selectedClienteKey, state.selectedCocheKey);
+      renderFacturasList();
+      const current = state.viewHistory[state.viewHistory.length - 1];
+      if (current === 'cliente') renderClienteDetail(state.selectedClienteKey);
+      else if (current === 'coche') renderCocheDetail(state.selectedClienteKey, state.selectedCocheKey);
     });
   }
 
@@ -101,8 +148,9 @@ async function initApp() {
         const key = target.dataset.key;
         state.selectedClienteKey = key;
         state.selectedCocheKey = null;
+        state.viewHistory = ['list'];
         renderClientesList();
-        renderClienteDetail(key);
+        navigate('cliente');
         break;
       }
 
@@ -111,16 +159,10 @@ async function initApp() {
         const cocheKey = target.dataset.key;
         state.selectedClienteKey = clienteKey;
         state.selectedCocheKey = cocheKey;
-        renderClientesList();
+        const cur = state.viewHistory[state.viewHistory.length - 1];
+        if (cur !== 'cliente') state.viewHistory = ['list'];
         renderCochesList();
-        renderCocheDetail(clienteKey, cocheKey);
-        break;
-      }
-
-      case 'back-to-cliente': {
-        const key = target.dataset.key;
-        state.selectedCocheKey = null;
-        renderClienteDetail(key);
+        navigate('coche');
         break;
       }
 
@@ -137,8 +179,7 @@ async function initApp() {
       case 'delete-cliente': {
         const key = target.dataset.key;
         openConfirm('¿Eliminar este cliente y todos sus vehículos y facturas?', () => {
-          state.selectedClienteKey = null;
-          showEmptyState();
+          goBack();
           return deleteCliente(uid, key);
         });
         break;
@@ -162,8 +203,7 @@ async function initApp() {
         const clienteKey = target.dataset.clienteKey;
         const cocheKey = target.dataset.key;
         openConfirm('¿Eliminar este vehículo y todas sus facturas?', () => {
-          state.selectedCocheKey = null;
-          renderClienteDetail(clienteKey);
+          goBack();
           return deleteCoche(uid, clienteKey, cocheKey);
         });
         break;
@@ -172,7 +212,8 @@ async function initApp() {
       case 'add-factura': {
         const clienteKey = target.dataset.clienteKey;
         const cocheKey = target.dataset.cocheKey;
-        openFacturaModal(null, data => addFactura(uid, clienteKey, cocheKey, data));
+        const numero = generateFacturaNumber(state.clientes);
+        openFacturaModal(null, data => addFactura(uid, clienteKey, cocheKey, data), { numero });
         break;
       }
 
@@ -244,6 +285,9 @@ function setupStaticUI() {
     `;
     el('modal-overlay').classList.remove('hidden');
   });
+
+  // Botón volver
+  el('btn-back').addEventListener('click', goBack);
 
   // Modal: cerrar
   el('modal-close').addEventListener('click', closeModal);

@@ -6,6 +6,7 @@
   <title>GarajeOS</title>
   <meta name="description" content="Gestión de taller mecánico" />
   <meta name="theme-color" content="#1c1c1e" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="css/style.css" />
   <script>
@@ -56,7 +57,8 @@
         </div>
       </header>
 
-      <div class="workspace">
+      <div class="view-stack">
+        <div id="view-list" class="view view-list">
         <aside class="sidebar">
           <nav class="sidebar-nav">
             <button class="nav-tab active" data-tab="clientes">
@@ -67,9 +69,13 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
               Coches
             </button>
+            <button class="nav-tab" data-tab="facturas">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              Facturas
+            </button>
             <button class="nav-tab" data-tab="calendario">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Calendario
+              Agenda
             </button>
           </nav>
 
@@ -99,6 +105,10 @@
             <ul id="list-coches" class="item-list"></ul>
           </div>
 
+          <div id="panel-facturas" class="sidebar-panel">
+            <ul id="list-facturas" class="item-list"></ul>
+          </div>
+
           <div id="panel-calendario" class="sidebar-panel">
             <div class="coming-soon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -106,15 +116,17 @@
             </div>
           </div>
         </aside>
+        </div>
 
-        <main id="detail-panel" class="detail-panel">
-          <div id="empty-state" class="empty-state">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-            <h2>Bienvenido a GarajeOS</h2>
-            <p>Selecciona un cliente o coche para ver sus detalles</p>
+        <div id="view-detail" class="view view-detail">
+          <div class="view-nav">
+            <button id="btn-back" class="btn-back">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              <span id="back-label">Volver</span>
+            </button>
           </div>
-          <div id="detail-content" class="hidden"></div>
-        </main>
+          <div id="detail-content" class="detail-scroll"></div>
+        </div>
       </div>
 
       <footer class="footer">

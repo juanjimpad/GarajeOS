@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { formatDate, formatCurrency, normalizeText, el } from './utils.js';
+import { formatDate, formatCurrency, normalizeText, el, escapeHTML as esc } from './utils.js';
 import { FACTURA_ESTADOS } from './config.js';
 
 // ── Sidebar lists ─────────────────────────────────────────
@@ -16,8 +16,8 @@ export function renderClientesList() {
       <li class="item-row ${state.selectedClienteKey === key ? 'active' : ''}" data-action="select-cliente" data-key="${key}">
         <div class="item-avatar">${(c.nombre || '?')[0].toUpperCase()}</div>
         <div class="item-info">
-          <span class="item-name">${c.nombre || 'Sin nombre'}</span>
-          <span class="item-sub">${c.telefono || c.email || ''}</span>
+          <span class="item-name">${esc(c.nombre) || 'Sin nombre'}</span>
+          <span class="item-sub">${esc(c.telefono) || esc(c.email) || ''}</span>
         </div>
         <span class="item-badge">${countCoches(key)}</span>
       </li>`).join('')
@@ -43,8 +43,8 @@ export function renderCochesList() {
       <li class="item-row ${state.selectedCocheKey === cocheKey ? 'active' : ''}" data-action="select-coche" data-cliente-key="${clienteKey}" data-key="${cocheKey}">
         <div class="item-avatar car-avatar">🚗</div>
         <div class="item-info">
-          <span class="item-name">${coche.marca || ''} ${coche.modelo || ''}</span>
-          <span class="item-sub">${coche.matricula || ''} · ${clienteNombre || ''}</span>
+          <span class="item-name">${esc(coche.marca) || ''} ${esc(coche.modelo) || ''}</span>
+          <span class="item-sub">${esc(coche.matricula) || ''} · ${esc(clienteNombre) || ''}</span>
         </div>
       </li>`).join('')
     : '<li class="list-empty">Sin resultados</li>';
@@ -66,8 +66,8 @@ export function renderClienteDetail(clienteKey) {
     <div class="detail-header">
       <div class="detail-avatar">${(cliente.nombre || '?')[0].toUpperCase()}</div>
       <div class="detail-title-group">
-        <h2>${cliente.nombre || 'Sin nombre'}</h2>
-        <p class="detail-subtitle">${cliente.email || ''}</p>
+        <h2>${esc(cliente.nombre) || 'Sin nombre'}</h2>
+        <p class="detail-subtitle">${esc(cliente.email) || ''}</p>
       </div>
       <div class="detail-actions">
         <button class="btn btn-sm btn-secondary" data-action="edit-cliente" data-key="${clienteKey}">Editar</button>
@@ -95,8 +95,6 @@ export function renderClienteDetail(clienteKey) {
     </div>
   `;
 
-  el('empty-state').classList.add('hidden');
-  el('detail-content').classList.remove('hidden');
 }
 
 function cocheCard(clienteKey, cocheKey, c) {
@@ -106,8 +104,8 @@ function cocheCard(clienteKey, cocheKey, c) {
       <div class="coche-card-header">
         <span class="coche-icon">🚗</span>
         <div>
-          <strong>${c.marca || ''} ${c.modelo || ''}</strong>
-          <span class="coche-matricula">${c.matricula || 'Sin matrícula'}</span>
+          <strong>${esc(c.marca) || ''} ${esc(c.modelo) || ''}</strong>
+          <span class="coche-matricula">${esc(c.matricula) || 'Sin matrícula'}</span>
         </div>
       </div>
       <div class="coche-meta">
@@ -133,11 +131,10 @@ export function renderCocheDetail(clienteKey, cocheKey) {
     <div class="detail-header">
       <div class="detail-avatar car-avatar-lg">🚗</div>
       <div class="detail-title-group">
-        <h2>${coche.marca || ''} ${coche.modelo || ''}</h2>
-        <p class="detail-subtitle">${coche.matricula || 'Sin matrícula'} · ${cliente.nombre || ''}</p>
+        <h2>${esc(coche.marca) || ''} ${esc(coche.modelo) || ''}</h2>
+        <p class="detail-subtitle">${esc(coche.matricula) || 'Sin matrícula'} · ${esc(cliente.nombre) || ''}</p>
       </div>
       <div class="detail-actions">
-        <button class="btn btn-sm btn-secondary" data-action="back-to-cliente" data-key="${clienteKey}">← Cliente</button>
         <button class="btn btn-sm btn-secondary" data-action="edit-coche" data-cliente-key="${clienteKey}" data-key="${cocheKey}">Editar</button>
         <button class="btn btn-sm btn-danger" data-action="delete-coche" data-cliente-key="${clienteKey}" data-key="${cocheKey}">Eliminar</button>
       </div>
@@ -164,8 +161,6 @@ export function renderCocheDetail(clienteKey, cocheKey) {
     </div>
   `;
 
-  el('empty-state').classList.add('hidden');
-  el('detail-content').classList.remove('hidden');
 }
 
 function facturaRow(clienteKey, cocheKey, facturaKey, f) {
@@ -173,12 +168,13 @@ function facturaRow(clienteKey, cocheKey, facturaKey, f) {
   return `
     <div class="factura-row" data-action="edit-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}">
       <div class="factura-info">
-        <span class="factura-num">#${f.numero || facturaKey.slice(0, 6)}</span>
-        <span class="factura-concepto">${f.concepto || 'Sin concepto'}</span>
+        <span class="factura-num">#${esc(f.numero) || facturaKey.slice(0, 6)}</span>
+        <span class="factura-concepto">${esc(f.concepto) || 'Sin concepto'}</span>
         <span class="factura-fecha">${formatDate(f.fecha)}</span>
       </div>
       <div class="factura-right">
-        <span class="badge ${estadoClass}">${f.estado || 'Pendiente'}</span>
+        <span class="badge ${estadoClass}">${esc(f.estado) || 'Pendiente'}</span>
+        ${{ Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago] ? `<span class="factura-metodo" title="${f.metodoPago}">${{ Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago]}</span>` : ''}
         <span class="factura-total">${formatCurrency(f.total)}</span>
         <button class="icon-btn danger-hover" data-action="delete-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}" title="Eliminar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
@@ -191,11 +187,67 @@ function facturaRow(clienteKey, cocheKey, facturaKey, f) {
 
 function infoItem(label, value) {
   if (!value) return '';
-  return `<div class="info-item"><span class="info-label">${label}</span><span class="info-value">${value}</span></div>`;
+  return `<div class="info-item"><span class="info-label">${label}</span><span class="info-value">${esc(value)}</span></div>`;
 }
 
-export function showEmptyState() {
-  el('empty-state').classList.remove('hidden');
-  el('detail-content').classList.add('hidden');
+// ── Sidebar: Facturas ─────────────────────────────────────
+
+export function renderFacturasList() {
+  const ul = el('list-facturas');
+  if (!ul) return;
+
+  const pendientes = [];
+  const resto = [];
+
+  for (const [clienteKey, cliente] of Object.entries(state.clientes)) {
+    for (const [cocheKey, coche] of Object.entries(cliente.coches || {})) {
+      for (const [facturaKey, factura] of Object.entries(coche.facturas || {})) {
+        const item = { clienteKey, cocheKey, facturaKey, factura, cliente, coche };
+        if (factura.estado === 'Pendiente') pendientes.push(item);
+        else resto.push(item);
+      }
+    }
+  }
+
+  pendientes.sort((a, b) => (a.factura.fecha || '').localeCompare(b.factura.fecha || ''));
+  resto.sort((a, b) => (b.factura.fecha || '').localeCompare(a.factura.fecha || ''));
+
+  if (!pendientes.length && !resto.length) {
+    ul.innerHTML = '<li class="list-empty">Sin facturas registradas</li>';
+    return;
+  }
+
+  const html = [];
+  if (pendientes.length) {
+    html.push(`<li class="list-section-header">Pendientes (${pendientes.length})</li>`);
+    html.push(...pendientes.map(i => facturaItem(i)));
+  }
+  if (resto.length) {
+    html.push(`<li class="list-section-header">Pagadas / Canceladas</li>`);
+    html.push(...resto.map(i => facturaItem(i)));
+  }
+  ul.innerHTML = html.join('');
+}
+
+function facturaItem({ clienteKey, cocheKey, facturaKey, factura, cliente, coche }) {
+  const avatarClass = { Pendiente: 'avatar-warning', Pagada: 'avatar-success', Cancelada: 'avatar-danger' }[factura.estado] || '';
+  const metodoPagoIcon = { Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[factura.metodoPago] || '';
+  return `
+    <li class="item-row" data-action="select-coche" data-cliente-key="${clienteKey}" data-key="${cocheKey}">
+      <div class="item-avatar ${avatarClass}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div class="item-info">
+        <span class="item-name">${esc(factura.concepto) || 'Sin concepto'}</span>
+        <span class="item-sub">${esc(cliente.nombre) || ''} · ${esc(coche.matricula) || ''}</span>
+      </div>
+      <div class="item-right-stack">
+        <span class="item-total">${factura.total != null ? formatCurrency(factura.total) : '—'}</span>
+        <span class="item-date">${metodoPagoIcon} ${formatDate(factura.fecha)}</span>
+      </div>
+    </li>`;
+}
+
+export function clearDetail() {
   el('detail-content').innerHTML = '';
 }
