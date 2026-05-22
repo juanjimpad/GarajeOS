@@ -43,6 +43,42 @@ export const CAR_BRANDS = {
 
 export const BRAND_NAMES = Object.keys(CAR_BRANDS).sort();
 
+// Marcas y modelos de moto más vendidos en España (1994-2024)
+export const MOTO_BRANDS = {
+  'Aprilia': ['RS 125', 'RS 660', 'RSV4', 'Tuono 125', 'Tuono 660', 'Tuono V4', 'Dorsoduro 750', 'Dorsoduro 900', 'Shiver 750', 'Shiver 900', 'Caponord 1200', 'SR 50', 'SR 125', 'SR GT 125', 'SR GT 200', 'Scarabeo 125'],
+  'Benelli': ['TNT 125', 'TNT 135', 'TNT 300', 'Leoncino 250', 'Leoncino 500', 'TRK 251', 'TRK 502', 'TRK 702', '502C', 'Imperiale 400', '752S'],
+  'Beta': ['RR 125', 'RR 200', 'RR 250', 'RR 300', 'RR 350', 'RR 390', 'RR 430', 'RR 480', 'X-Trainer 250', 'X-Trainer 300'],
+  'BMW Motorrad': ['G 310 R', 'G 310 GS', 'F 750 GS', 'F 800 GS', 'F 850 GS', 'F 900 R', 'F 900 XR', 'R 1200 GS', 'R 1250 GS', 'R 1250 RT', 'R 1250 RS', 'R 1250 R', 'R nineT', 'R nineT Scrambler', 'R nineT Pure', 'S 1000 RR', 'S 1000 R', 'S 1000 XR', 'C 400 X', 'C 400 GT', 'C 650 GT', 'K 1600 GT', 'M 1000 RR'],
+  'CFMOTO': ['150NK', '300NK', '400NK', '650NK', '650MT', '650GT', '700CL-X', '800MT', '800NK', '1000MT'],
+  'Derbi': ['GPR 50', 'GPR 125', 'Senda 50', 'Senda 125', 'Rambla 125', 'Rambla 300', 'Mulhacen 125', 'Mulhacen 659'],
+  'Ducati': ['Monster 797', 'Monster 821', 'Monster 937', 'Monster 1200', 'Panigale V2', 'Panigale V4', 'Scrambler Icon', 'Scrambler Desert Sled', 'Scrambler 1100', 'Multistrada 950', 'Multistrada V2', 'Multistrada V4', 'Diavel 1260', 'Diavel V4', 'SuperSport 939', 'Hypermotard 939', 'Hypermotard 950', 'DesertX', 'XDiavel'],
+  'Gas Gas': ['EC 125', 'EC 250', 'EC 300', 'EC 350F', 'EX 250F', 'EX 350F', 'ES 700', 'SM 700'],
+  'Harley-Davidson': ['Iron 883', 'Forty-Eight', 'Sportster S', 'Fat Bob 114', 'Fat Boy 114', 'Softail Standard', 'Street Bob 114', 'Heritage Classic', 'Deluxe', 'Road King', 'Street Glide', 'Road Glide', 'Ultra Limited', 'Pan America 1250', 'Nightster'],
+  'Honda': ['CBR125R', 'CBR250R', 'CBR500R', 'CBR600RR', 'CBR650R', 'CBR1000RR Fireblade', 'CB125R', 'CB300R', 'CB500F', 'CB500X', 'CB650R', 'CB1000R', 'NC750X', 'NC750S', 'Africa Twin CRF1000L', 'Africa Twin CRF1100L', 'Transalp XL750', 'Hornet CB750', 'X-ADV 750', 'Forza 125', 'Forza 350', 'Forza 750', 'PCX 125', 'SH 125', 'SH 350', 'Vision 110', 'VFR800F', 'Varadero XL1000V', 'Integra 750'],
+  'Husqvarna': ['Vitpilen 125', 'Vitpilen 401', 'Svartpilen 125', 'Svartpilen 401', 'Norden 901', 'TE 150', 'TE 250', 'TE 300', 'FE 250', 'FE 350', 'FE 450', 'FE 501'],
+  'Indian': ['Scout', 'Scout Bobber', 'Scout Rogue', 'Chief', 'Chief Bobber', 'Chieftain', 'Springfield', 'Roadmaster', 'FTR 1200', 'Pursuit'],
+  'Kawasaki': ['Ninja 125', 'Ninja 400', 'Ninja 650', 'Ninja ZX-6R', 'Ninja ZX-10R', 'Ninja ZX-14R', 'Ninja H2', 'Z125', 'Z400', 'Z650', 'Z750', 'Z800', 'Z900', 'Z1000', 'Versys 300', 'Versys 650', 'Versys 1000', 'Vulcan S', 'Vulcan 900', 'W800', 'ER-6n', 'ER-6f'],
+  'Kymco': ['Agility 50', 'Agility 125', 'Agility 150', 'Like 125', 'Like 150', 'People S 125', 'People S 300', 'Xciting 300', 'Xciting 400', 'Xciting S 400', 'Downtown 125', 'Downtown 300', 'AK 550'],
+  'Moto Guzzi': ['V7 Stone', 'V7 Special', 'V7 Racer', 'V9 Bobber', 'V9 Roamer', 'V85 TT', 'V100 Mandello', 'Breva 750', 'California 1400', 'Audace 1400', 'Norge 1200'],
+  'MV Agusta': ['F3 675', 'F3 800', 'F4', 'Brutale 800', 'Brutale 1000', 'Turismo Veloce 800', 'Dragster 800', 'Superveloce 800', 'Rush 1000'],
+  'Piaggio': ['Beverly 125', 'Beverly 300', 'Beverly 350', 'Beverly 400', 'MP3 300', 'MP3 400', 'MP3 530', 'Medley 125', 'Liberty 50', 'Liberty 125', 'Zip 50', 'Zip 125'],
+  'KTM': ['Duke 125', 'Duke 200', 'Duke 250', 'Duke 390', 'Duke 790', 'Duke 890', 'Duke 990', '1290 Super Duke R', '1290 Super Duke GT', 'RC 125', 'RC 390', 'Adventure 390', 'Adventure 790', 'Adventure 890', 'Adventure 990', 'Adventure 1290', 'SMC-R 690', '890 SMT'],
+  'Peugeot': ['Django 50', 'Django 125', 'Tweet 50', 'Tweet 125', 'Citystar 125', 'Citystar 200', 'Metropolis 400'],
+  'Rieju': ['RS3 50', 'RS3 125', 'MRT 50', 'MRT 125', 'Century 125', 'Century 300', 'Century 500', 'Tango 125', 'Nuuk 125'],
+  'Royal Enfield': ['Classic 350', 'Classic 500', 'Meteor 350', 'Bullet 350', 'Himalayan 411', 'Interceptor 650', 'Continental GT 650', 'Scram 411', 'Hunter 350', 'Super Meteor 650'],
+  'Sherco': ['SE 125', 'SE 250', 'SE 300', 'SE 450', 'SEF 250', 'SEF 300', 'SEF 450', 'SEF 500'],
+  'Suzuki': ['GSX-R125', 'GSX-R600', 'GSX-R750', 'GSX-R1000', 'GSX-S125', 'GSX-S750', 'GSX-S950', 'GSX-S1000', 'GSX-8S', 'V-Strom 250', 'V-Strom 650', 'V-Strom 800', 'V-Strom 1000', 'V-Strom 1050', 'SV650', 'SV1000', 'Bandit 600', 'Bandit 1250', 'Burgman 125', 'Burgman 400', 'Burgman 650', 'Hayabusa', 'Intruder 125'],
+  'SYM': ['Fiddle 50', 'Fiddle 125', 'Jet 4 50', 'Jet 4 125', 'Symphony 125', 'Joymax 250', 'Joymax Z 300', 'Joymax Z 125', 'Cruisym 300', 'Maxsym 400', 'Maxsym TL 508'],
+  'Triumph': ['Street Triple 660', 'Street Triple 765', 'Speed Triple 1050', 'Speed Triple 1200', 'Tiger 660', 'Tiger 800', 'Tiger 900', 'Tiger 1200', 'Trident 660', 'Bonneville T100', 'Bonneville T120', 'Bonneville Bobber', 'Thruxton 1200', 'Scrambler 1200', 'Rocket 3', 'Speed Twin 900', 'Speed Twin 1200', 'Daytona 675'],
+  'Vespa': ['Primavera 50', 'Primavera 125', 'Primavera 150', 'Sprint 50', 'Sprint 125', 'Sprint 150', 'GTS 125', 'GTS 150', 'GTS 300', 'GTV 300', 'LX 50', 'LX 125', 'GTS Super 300', 'Elettrica'],
+  'Voge': ['300R', '300AC', '525R', '500R', '500DS', '500DSX', '650DS', '650DSX', '300RR'],
+  'Yamaha': ['YZF-R1', 'YZF-R6', 'YZF-R3', 'YZF-R125', 'MT-07', 'MT-09', 'MT-10', 'MT-03', 'MT-125', 'Tracer 7', 'Tracer 9', 'Ténéré 700', 'Super Ténéré 1200', 'XSR700', 'XSR900', 'XSR125', 'TMAX 500', 'TMAX 530', 'TMAX 560', 'XMAX 125', 'XMAX 300', 'NMAX 125', 'Aerox 50', 'Aerox 155', 'FZ6', 'FZ1', 'FJR1300', 'TDM 900'],
+};
+
+export const MOTO_BRAND_NAMES = Object.keys(MOTO_BRANDS).sort();
+
+export const VEHICLE_TYPES = ['Coche', 'Moto'];
+
 export const FUEL_TYPES = ['Gasolina', 'Diésel', 'Híbrido', 'Híbrido enchufable', 'Eléctrico', 'GLP', 'GNC'];
 
 export const FACTURA_ESTADOS = ['Pendiente', 'Pagada', 'Cancelada'];

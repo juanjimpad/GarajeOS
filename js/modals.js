@@ -1,5 +1,5 @@
 import { el, todayISO, escapeHTML as esc } from './utils.js';
-import { CAR_BRANDS, BRAND_NAMES, FUEL_TYPES, FACTURA_ESTADOS, PAYMENT_METHODS } from './config.js';
+import { CAR_BRANDS, BRAND_NAMES, MOTO_BRANDS, MOTO_BRAND_NAMES, VEHICLE_TYPES, FUEL_TYPES, FACTURA_ESTADOS, PAYMENT_METHODS } from './config.js';
 
 function openModal(title, bodyHTML, onConfirm) {
   el('modal-title').textContent = title;
@@ -32,7 +32,9 @@ export function closeModal() {
 }
 
 function updateModelos(brand, select) {
-  const models = CAR_BRANDS[brand] || [];
+  const tipo = el('m-tipo')?.value || 'Coche';
+  const brands = tipo === 'Moto' ? MOTO_BRANDS : CAR_BRANDS;
+  const models = brands[brand] || [];
   const current = select.dataset.current || '';
   select.innerHTML = `<option value="">Seleccionar modelo</option>` +
     models.map(m => `<option value="${m}" ${m === current ? 'selected' : ''}>${m}</option>`).join('');
@@ -77,13 +79,20 @@ export function openClienteModal(existing, onSave) {
 export function openCocheModal(existing, onSave) {
   const isEdit = !!existing;
   const c = existing || {};
-  const brandOptions = BRAND_NAMES.map(b =>
+  const tipo = c.tipo || 'Coche';
+  const brandNames = tipo === 'Moto' ? MOTO_BRAND_NAMES : BRAND_NAMES;
+  const brandOptions = brandNames.map(b =>
     `<option value="${b}" ${b === c.marca ? 'selected' : ''}>${b}</option>`
   ).join('');
 
   openModal(
     isEdit ? 'Editar vehículo' : 'Nuevo vehículo',
     `<div class="form-grid">
+      <label>Tipo
+        <select id="m-tipo">
+          ${VEHICLE_TYPES.map(t => `<option value="${t}" ${t === tipo ? 'selected' : ''}>${t === 'Moto' ? '🏍️' : '🚗'} ${t}</option>`).join('')}
+        </select>
+      </label>
       <label>Matrícula *<input id="m-matricula" type="text" value="${esc(c.matricula)}" placeholder="Ej: 1234 ABC" style="text-transform:uppercase" /></label>
       <label>Marca *
         <select id="m-marca">
@@ -104,7 +113,7 @@ export function openCocheModal(existing, onSave) {
           ${FUEL_TYPES.map(f => `<option value="${f}" ${f === c.combustible ? 'selected' : ''}>${f}</option>`).join('')}
         </select>
       </label>
-      <label>Kilometraje<input id="m-kms" type="number" value="${c.kms || ''}" min="0" placeholder="Ej: 85000" /></label>
+      ${!isEdit ? `<label>Kilometraje inicial<input id="m-kms" type="number" value="${c.kms || ''}" min="0" placeholder="Ej: 85000" /></label>` : ''}
       <label>Bastidor (VIN)<input id="m-vin" type="text" value="${esc(c.vin)}" placeholder="17 caracteres" style="text-transform:uppercase" /></label>
       <label class="full">Notas<textarea id="m-notas" rows="2">${esc(c.notas)}</textarea></label>
     </div>
@@ -116,8 +125,10 @@ export function openCocheModal(existing, onSave) {
       const matricula = el('m-matricula').value.trim().toUpperCase();
       const marca = el('m-marca').value;
       if (!matricula || !marca) { alert('Matrícula y marca son obligatorias'); return Promise.resolve(); }
-      const kms = parseInt(el('m-kms').value, 10);
+      const kmsEl = el('m-kms');
+      const kms = kmsEl ? parseInt(kmsEl.value, 10) : NaN;
       return onSave({
+        tipo: el('m-tipo').value,
         matricula,
         marca,
         modelo: el('m-modelo').value,
@@ -130,6 +141,17 @@ export function openCocheModal(existing, onSave) {
       });
     }
   );
+
+  const tipoSel = el('m-tipo');
+  const brandSel = el('m-marca');
+  const modelSel = el('m-modelo');
+
+  tipoSel.addEventListener('change', () => {
+    const names = tipoSel.value === 'Moto' ? MOTO_BRAND_NAMES : BRAND_NAMES;
+    brandSel.innerHTML = `<option value="">Seleccionar marca</option>` +
+      names.map(b => `<option value="${b}">${b}</option>`).join('');
+    modelSel.innerHTML = `<option value="">Seleccionar modelo</option>`;
+  });
 }
 
 // ── Factura modal ─────────────────────────────────────────
@@ -146,6 +168,7 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
       <label>Fecha<input id="m-fecha" type="date" value="${f.fecha || todayISO()}" /></label>
       <label class="full">Concepto *<input id="m-concepto" type="text" value="${esc(f.concepto)}" placeholder="Descripción del trabajo realizado" /></label>
       <label>Total (€)<input id="m-total" type="number" step="0.01" value="${f.total || ''}" placeholder="0.00" /></label>
+      <label>Kilometraje<input id="m-kms" type="number" value="${f.kms || ''}" min="0" placeholder="Ej: 85000" /></label>
       <label>Estado
         <select id="m-estado">
           ${FACTURA_ESTADOS.map(e => `<option value="${e}" ${e === (f.estado || 'Pendiente') ? 'selected' : ''}>${e}</option>`).join('')}
@@ -170,12 +193,14 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
       const concepto = el('m-concepto').value.trim();
       if (!concepto) { alert('El concepto es obligatorio'); return Promise.resolve(); }
       const total = parseFloat(el('m-total').value);
+      const kms = parseInt(el('m-kms').value, 10);
       const metodoPago = el('modal-body').querySelector('input[name="metodoPago"]:checked')?.value || 'Efectivo';
       return onSave({
         numero: el('m-numero').value.trim(),
         fecha: el('m-fecha').value,
         concepto,
         total: isNaN(total) ? null : total,
+        kms: isNaN(kms) ? null : kms,
         estado: el('m-estado').value,
         metodoPago,
         descripcion: el('m-descripcion').value.trim(),
