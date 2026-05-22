@@ -245,13 +245,6 @@ async function initApp() {
     openClienteModal(null, data => addCliente(state.currentUser.uid, data));
   });
 
-  el('btn-add-coche').addEventListener('click', () => {
-    if (!state.selectedClienteKey) {
-      alert('Primero selecciona un cliente para añadir un vehículo.');
-      return;
-    }
-    openCocheModal(null, data => addCoche(state.currentUser.uid, state.selectedClienteKey, data));
-  });
 }
 
 // ── UI estática (no requiere Firebase) ────────────────────
