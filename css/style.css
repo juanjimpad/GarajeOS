@@ -138,7 +138,51 @@ body {
 .app-logo { font-size: 22px; }
 .app-name { font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
 
-.topbar-right { display: flex; align-items: center; gap: 6px; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+
+/* ── User chip ───────────────────────────────────────────── */
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 10px 3px 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: default;
+  max-width: 200px;
+}
+
+.user-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.user-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* ── Workspace ───────────────────────────────────────────── */
 .workspace {
@@ -662,6 +706,102 @@ label {
 
 .confirm-msg { font-size: 15px; margin-bottom: 20px; color: var(--text); }
 
+/* ── Footer ──────────────────────────────────────────────── */
+.footer {
+  height: 42px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.footer-theme {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.theme-btn {
+  background: none;
+  border: none;
+  border-radius: 7px;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s;
+  opacity: .5;
+}
+
+.theme-btn:hover { background: var(--border); opacity: 1; }
+.theme-btn.active { background: var(--bg-card); opacity: 1; box-shadow: var(--shadow-sm); }
+
+.footer-copy {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.footer-info { width: 28px; height: 28px; }
+
+/* ── Info modal ──────────────────────────────────────────── */
+.info-body {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.info-body .info-logo { font-size: 48px; display: block; margin-bottom: 8px; }
+.info-body h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.info-body .info-version { font-size: 12px; color: var(--text-sub); margin-bottom: 16px; }
+.info-body p { font-size: 14px; color: var(--text-sub); line-height: 1.6; margin-bottom: 16px; }
+
+.info-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.info-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: var(--bg-input);
+  transition: background .15s;
+}
+
+.info-link:hover { background: var(--border); }
+.info-link.kofi { background: #ff5e5b; color: #fff; border-color: #ff5e5b; }
+.info-link.kofi:hover { background: #e04e4b; }
+
+.info-credit {
+  font-size: 11px;
+  color: var(--text-placeholder);
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin-top: 4px;
+}
+
 /* ── Scrollbars ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -690,4 +830,7 @@ label {
   .form-grid label.full { grid-column: 1; }
 
   .info-grid { grid-template-columns: 1fr 1fr; }
+
+  .user-name { display: none; }
+  .footer-copy { display: none; }
 }
