@@ -71,69 +71,6 @@ body {
   background: var(--bg);
 }
 
-/* ── Setup screen ────────────────────────────────────────── */
-.setup-card {
-  max-width: 480px !important;
-}
-
-.setup-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.setup-step {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-}
-
-.step-num {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.setup-step div { flex: 1; }
-.setup-step strong { display: block; font-size: 14px; margin-bottom: 4px; }
-.setup-step p { font-size: 13px; color: var(--text-sub); line-height: 1.5; margin-bottom: 4px; }
-.setup-step a { color: var(--accent); text-decoration: none; }
-.setup-step a:hover { text-decoration: underline; }
-.setup-step code {
-  font-family: monospace;
-  font-size: 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1px 5px;
-}
-
-.setup-error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-
-[data-theme="dark"] .setup-error {
-  background: #3f1f1f;
-  border-color: #7f1d1d;
-  color: #f87171;
-}
-
 .auth-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
