@@ -623,8 +623,8 @@ body {
 
 .factura-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -633,8 +633,6 @@ body {
   transition: box-shadow .15s;
   box-shadow: var(--shadow-sm);
 }
-
-.factura-row { flex-direction: column; gap: 6px; }
 .factura-row:hover { box-shadow: var(--shadow-md); }
 
 .factura-row-top {
