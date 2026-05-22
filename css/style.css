@@ -435,6 +435,26 @@ body {
 .item-total { font-size: 12px; font-weight: 700; }
 .item-date  { font-size: 10px; color: var(--text-sub); white-space: nowrap; }
 
+.factura-item { align-items: flex-start; }
+
+.factura-item-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 10px;
+  row-gap: 2px;
+}
+
+.factura-item-body .item-total {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.factura-item-body .item-date {
+  text-align: right;
+}
+
 .list-section-header {
   padding: 8px 12px 4px;
   font-size: 10px;
