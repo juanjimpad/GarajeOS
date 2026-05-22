@@ -18,11 +18,15 @@ function openModal(title, bodyHTML, onConfirm) {
     btn.addEventListener('click', closeModal);
   });
 
-  const brandSel = el('modal-body').querySelector('#m-marca');
-  const modelSel = el('modal-body').querySelector('#m-modelo');
-  if (brandSel && modelSel) {
-    brandSel.addEventListener('change', () => updateModelos(brandSel.value, modelSel));
-    if (brandSel.value) updateModelos(brandSel.value, modelSel);
+  const brandInput = el('modal-body').querySelector('#m-marca');
+  if (brandInput) {
+    brandInput.addEventListener('input', () => {
+      const modelInput = el('modal-body').querySelector('#m-modelo');
+      if (modelInput) {
+        modelInput.value = '';
+        modelInput.dataset.options = JSON.stringify(getModelos(brandInput.value));
+      }
+    });
   }
 }
 
@@ -31,13 +35,58 @@ export function closeModal() {
   el('modal-body').innerHTML = '';
 }
 
-function updateModelos(brand, select) {
+function getModelos(brand) {
   const tipo = el('m-tipo')?.value || 'Coche';
   const brands = tipo === 'Moto' ? MOTO_BRANDS : CAR_BRANDS;
-  const models = brands[brand] || [];
-  const current = select.dataset.current || '';
-  select.innerHTML = `<option value="">Seleccionar modelo</option>` +
-    models.map(m => `<option value="${m}" ${m === current ? 'selected' : ''}>${m}</option>`).join('');
+  return brands[brand] || [];
+}
+
+function refreshCombobox(input, options) {
+  const dropdown = input.parentElement.querySelector('.ac-dropdown');
+  if (dropdown) dropdown.remove();
+  input.dataset.options = JSON.stringify(options);
+}
+
+function setupCombobox(inputId, options) {
+  const input = el(inputId);
+  if (!input) return;
+  input.dataset.options = JSON.stringify(options);
+
+  const wrap = input.parentElement;
+  wrap.style.position = 'relative';
+
+  function showDropdown(filter) {
+    closeDropdown();
+    const opts = JSON.parse(input.dataset.options || '[]');
+    const filtered = filter
+      ? opts.filter(o => o.toLowerCase().includes(filter.toLowerCase()))
+      : opts;
+    if (!filtered.length) return;
+
+    const dd = document.createElement('div');
+    dd.className = 'ac-dropdown';
+    filtered.slice(0, 50).forEach(o => {
+      const item = document.createElement('div');
+      item.className = 'ac-item';
+      item.textContent = o;
+      item.addEventListener('mousedown', e => {
+        e.preventDefault();
+        input.value = o;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        closeDropdown();
+      });
+      dd.appendChild(item);
+    });
+    wrap.appendChild(dd);
+  }
+
+  function closeDropdown() {
+    wrap.querySelector('.ac-dropdown')?.remove();
+  }
+
+  input.addEventListener('focus', () => showDropdown(input.value));
+  input.addEventListener('input', () => showDropdown(input.value));
+  input.addEventListener('blur', () => setTimeout(closeDropdown, 150));
 }
 
 // ── Cliente modal ─────────────────────────────────────────
@@ -81,9 +130,6 @@ export function openCocheModal(existing, onSave) {
   const c = existing || {};
   const tipo = c.tipo || 'Coche';
   const brandNames = tipo === 'Moto' ? MOTO_BRAND_NAMES : BRAND_NAMES;
-  const brandOptions = brandNames.map(b =>
-    `<option value="${b}" ${b === c.marca ? 'selected' : ''}>${b}</option>`
-  ).join('');
 
   openModal(
     isEdit ? 'Editar vehículo' : 'Nuevo vehículo',
@@ -94,17 +140,8 @@ export function openCocheModal(existing, onSave) {
         </select>
       </label>
       <label>Matrícula *<input id="m-matricula" type="text" value="${esc(c.matricula)}" placeholder="Ej: 1234 ABC" style="text-transform:uppercase" /></label>
-      <label>Marca *
-        <select id="m-marca">
-          <option value="">Seleccionar marca</option>
-          ${brandOptions}
-        </select>
-      </label>
-      <label>Modelo
-        <select id="m-modelo" data-current="${esc(c.modelo)}">
-          <option value="">Seleccionar modelo</option>
-        </select>
-      </label>
+      <label>Marca *<div class="ac-wrap"><input id="m-marca" type="text" value="${esc(c.marca)}" placeholder="Buscar marca..." autocomplete="off" /></div></label>
+      <label>Modelo<div class="ac-wrap"><input id="m-modelo" type="text" value="${esc(c.modelo)}" placeholder="Buscar modelo..." autocomplete="off" /></div></label>
       <label>Año<input id="m-año" type="number" value="${c.año || ''}" min="1990" max="${new Date().getFullYear() + 1}" placeholder="Ej: 2018" /></label>
       <label>Color<input id="m-color" type="text" value="${esc(c.color)}" placeholder="Ej: Blanco" /></label>
       <label>Combustible
@@ -142,15 +179,17 @@ export function openCocheModal(existing, onSave) {
     }
   );
 
-  const tipoSel = el('m-tipo');
-  const brandSel = el('m-marca');
-  const modelSel = el('m-modelo');
+  setupCombobox('m-marca', brandNames);
+  setupCombobox('m-modelo', getModelos(c.marca));
 
+  const tipoSel = el('m-tipo');
   tipoSel.addEventListener('change', () => {
     const names = tipoSel.value === 'Moto' ? MOTO_BRAND_NAMES : BRAND_NAMES;
-    brandSel.innerHTML = `<option value="">Seleccionar marca</option>` +
-      names.map(b => `<option value="${b}">${b}</option>`).join('');
-    modelSel.innerHTML = `<option value="">Seleccionar modelo</option>`;
+    const marcaInput = el('m-marca');
+    marcaInput.value = '';
+    marcaInput.dataset.options = JSON.stringify(names);
+    el('m-modelo').value = '';
+    el('m-modelo').dataset.options = JSON.stringify([]);
   });
 }
 

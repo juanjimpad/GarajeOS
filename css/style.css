@@ -1,5 +1,6 @@
 /* ── Variables ──────────────────────────────────────────── */
 :root {
+  color-scheme: light;
   --bg: #f2f2f7;
   --bg-card: #ffffff;
   --bg-sidebar: #f8f8fa;
@@ -25,6 +26,7 @@
 }
 
 [data-theme="dark"] {
+  color-scheme: dark;
   --bg: #0f0f10;
   --bg-card: #1c1c1e;
   --bg-sidebar: #161618;
@@ -838,6 +840,41 @@ body {
 .icon-btn:hover { background: var(--border); color: var(--text); }
 .icon-btn.danger-hover:hover { background: #fee2e2; color: var(--danger); }
 [data-theme="dark"] .icon-btn.danger-hover:hover { background: #3f1f1f; }
+
+/* ── Autocomplete ────────────────────────────────────────── */
+.ac-wrap {
+  position: relative;
+}
+
+.ac-wrap input {
+  width: 100%;
+}
+
+.ac-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 200;
+}
+
+.ac-item {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.ac-item:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
 
 /* ── Form inputs ─────────────────────────────────────────── */
 input, select, textarea {
