@@ -27,12 +27,6 @@ export function deleteCliente(uid, key) {
 }
 
 // ── Coches ───────────────────────────────────────────────
-export function subscribeCoche(uid, clienteKey, cocheKey, callback) {
-  const r = userRef(uid, 'clientes', clienteKey, 'coches', cocheKey);
-  onValue(r, snap => callback(snap.val()));
-  return () => off(r);
-}
-
 export function addCoche(uid, clienteKey, data) {
   return push(userRef(uid, 'clientes', clienteKey, 'coches'), data);
 }

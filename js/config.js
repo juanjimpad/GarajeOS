@@ -46,3 +46,5 @@ export const BRAND_NAMES = Object.keys(CAR_BRANDS).sort();
 export const FUEL_TYPES = ['Gasolina', 'Diésel', 'Híbrido', 'Híbrido enchufable', 'Eléctrico', 'GLP', 'GNC'];
 
 export const FACTURA_ESTADOS = ['Pendiente', 'Pagada', 'Cancelada'];
+
+export const PAYMENT_METHODS = ['Efectivo', 'Tarjeta', 'Bizum'];

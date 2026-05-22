@@ -1,5 +1,5 @@
-import { el, todayISO } from './utils.js';
-import { CAR_BRANDS, BRAND_NAMES, FUEL_TYPES, FACTURA_ESTADOS } from './config.js';
+import { el, todayISO, escapeHTML as esc } from './utils.js';
+import { CAR_BRANDS, BRAND_NAMES, FUEL_TYPES, FACTURA_ESTADOS, PAYMENT_METHODS } from './config.js';
 
 function openModal(title, bodyHTML, onConfirm) {
   el('modal-title').textContent = title;
@@ -13,6 +13,10 @@ function openModal(title, bodyHTML, onConfirm) {
       closeModal();
     });
   }
+
+  el('modal-body').querySelectorAll('[data-modal-cancel]').forEach(btn => {
+    btn.addEventListener('click', closeModal);
+  });
 
   const brandSel = el('modal-body').querySelector('#m-marca');
   const modelSel = el('modal-body').querySelector('#m-modelo');
@@ -42,15 +46,15 @@ export function openClienteModal(existing, onSave) {
   openModal(
     isEdit ? 'Editar cliente' : 'Nuevo cliente',
     `<div class="form-grid">
-      <label>Nombre *<input id="m-nombre" type="text" value="${c.nombre || ''}" placeholder="Nombre completo" /></label>
-      <label>Teléfono<input id="m-telefono" type="tel" value="${c.telefono || ''}" placeholder="Ej: 612 345 678" /></label>
-      <label>Email<input id="m-email" type="email" value="${c.email || ''}" placeholder="correo@ejemplo.com" /></label>
-      <label>NIF / DNI<input id="m-nif" type="text" value="${c.nif || ''}" placeholder="12345678A" /></label>
-      <label class="full">Dirección<input id="m-direccion" type="text" value="${c.direccion || ''}" placeholder="Calle, número, ciudad" /></label>
-      <label class="full">Notas<textarea id="m-notas" rows="2" placeholder="Observaciones...">${c.notas || ''}</textarea></label>
+      <label>Nombre *<input id="m-nombre" type="text" value="${esc(c.nombre)}" placeholder="Nombre completo" /></label>
+      <label>Teléfono<input id="m-telefono" type="tel" value="${esc(c.telefono)}" placeholder="Ej: 612 345 678" /></label>
+      <label>Email<input id="m-email" type="email" value="${esc(c.email)}" placeholder="correo@ejemplo.com" /></label>
+      <label>NIF / DNI<input id="m-nif" type="text" value="${esc(c.nif)}" placeholder="12345678A" /></label>
+      <label class="full">Dirección<input id="m-direccion" type="text" value="${esc(c.direccion)}" placeholder="Calle, número, ciudad" /></label>
+      <label class="full">Notas<textarea id="m-notas" rows="2" placeholder="Observaciones...">${esc(c.notas)}</textarea></label>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="document.getElementById('modal-overlay').classList.add('hidden')">Cancelar</button>
+      <button class="btn btn-secondary" data-modal-cancel>Cancelar</button>
       <button class="btn btn-primary" data-modal-confirm>Guardar</button>
     </div>`,
     () => {
@@ -80,7 +84,7 @@ export function openCocheModal(existing, onSave) {
   openModal(
     isEdit ? 'Editar vehículo' : 'Nuevo vehículo',
     `<div class="form-grid">
-      <label>Matrícula *<input id="m-matricula" type="text" value="${c.matricula || ''}" placeholder="Ej: 1234 ABC" style="text-transform:uppercase" /></label>
+      <label>Matrícula *<input id="m-matricula" type="text" value="${esc(c.matricula)}" placeholder="Ej: 1234 ABC" style="text-transform:uppercase" /></label>
       <label>Marca *
         <select id="m-marca">
           <option value="">Seleccionar marca</option>
@@ -88,12 +92,12 @@ export function openCocheModal(existing, onSave) {
         </select>
       </label>
       <label>Modelo
-        <select id="m-modelo" data-current="${c.modelo || ''}">
+        <select id="m-modelo" data-current="${esc(c.modelo)}">
           <option value="">Seleccionar modelo</option>
         </select>
       </label>
       <label>Año<input id="m-año" type="number" value="${c.año || ''}" min="1990" max="${new Date().getFullYear() + 1}" placeholder="Ej: 2018" /></label>
-      <label>Color<input id="m-color" type="text" value="${c.color || ''}" placeholder="Ej: Blanco" /></label>
+      <label>Color<input id="m-color" type="text" value="${esc(c.color)}" placeholder="Ej: Blanco" /></label>
       <label>Combustible
         <select id="m-combustible">
           <option value="">—</option>
@@ -101,11 +105,11 @@ export function openCocheModal(existing, onSave) {
         </select>
       </label>
       <label>Kilometraje<input id="m-kms" type="number" value="${c.kms || ''}" min="0" placeholder="Ej: 85000" /></label>
-      <label>Bastidor (VIN)<input id="m-vin" type="text" value="${c.vin || ''}" placeholder="17 caracteres" style="text-transform:uppercase" /></label>
-      <label class="full">Notas<textarea id="m-notas" rows="2">${c.notas || ''}</textarea></label>
+      <label>Bastidor (VIN)<input id="m-vin" type="text" value="${esc(c.vin)}" placeholder="17 caracteres" style="text-transform:uppercase" /></label>
+      <label class="full">Notas<textarea id="m-notas" rows="2">${esc(c.notas)}</textarea></label>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="document.getElementById('modal-overlay').classList.add('hidden')">Cancelar</button>
+      <button class="btn btn-secondary" data-modal-cancel>Cancelar</button>
       <button class="btn btn-primary" data-modal-confirm>Guardar</button>
     </div>`,
     () => {
@@ -130,41 +134,62 @@ export function openCocheModal(existing, onSave) {
 
 // ── Factura modal ─────────────────────────────────────────
 
-export function openFacturaModal(existing, onSave) {
+export function openFacturaModal(existing, onSave, defaults = {}) {
   const isEdit = !!existing;
-  const f = existing || {};
+  const f = existing || defaults;
   openModal(
     isEdit ? 'Editar factura' : 'Nueva factura',
     `<div class="form-grid">
-      <label>Número de factura<input id="m-numero" type="text" value="${f.numero || ''}" placeholder="Ej: 2024-001" /></label>
+      <label>Número de factura
+        <input id="m-numero" type="text" value="${f.numero || ''}" placeholder="Ej: 2026-001" readonly class="input-readonly" />
+      </label>
       <label>Fecha<input id="m-fecha" type="date" value="${f.fecha || todayISO()}" /></label>
-      <label class="full">Concepto *<input id="m-concepto" type="text" value="${f.concepto || ''}" placeholder="Descripción del trabajo realizado" /></label>
+      <label class="full">Concepto *<input id="m-concepto" type="text" value="${esc(f.concepto)}" placeholder="Descripción del trabajo realizado" /></label>
       <label>Total (€)<input id="m-total" type="number" step="0.01" value="${f.total || ''}" placeholder="0.00" /></label>
       <label>Estado
         <select id="m-estado">
           ${FACTURA_ESTADOS.map(e => `<option value="${e}" ${e === (f.estado || 'Pendiente') ? 'selected' : ''}>${e}</option>`).join('')}
         </select>
       </label>
-      <label class="full">Descripción detallada<textarea id="m-descripcion" rows="3" placeholder="Piezas, mano de obra, etc.">${f.descripcion || ''}</textarea></label>
+      <label id="m-metodo-grupo" class="full">Método de pago
+        <div class="radio-group">
+          ${PAYMENT_METHODS.map(m => `
+            <label class="radio-pill">
+              <input type="radio" name="metodoPago" value="${m}" ${(f.metodoPago || 'Efectivo') === m ? 'checked' : ''} />
+              ${m === 'Efectivo' ? '💵' : m === 'Tarjeta' ? '💳' : '📱'} ${m}
+            </label>`).join('')}
+        </div>
+      </label>
+      <label class="full">Descripción detallada<textarea id="m-descripcion" rows="3" placeholder="Piezas, mano de obra, etc.">${esc(f.descripcion)}</textarea></label>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="document.getElementById('modal-overlay').classList.add('hidden')">Cancelar</button>
+      <button class="btn btn-secondary" data-modal-cancel>Cancelar</button>
       <button class="btn btn-primary" data-modal-confirm>Guardar</button>
     </div>`,
     () => {
       const concepto = el('m-concepto').value.trim();
       if (!concepto) { alert('El concepto es obligatorio'); return Promise.resolve(); }
       const total = parseFloat(el('m-total').value);
+      const metodoPago = el('modal-body').querySelector('input[name="metodoPago"]:checked')?.value || 'Efectivo';
       return onSave({
         numero: el('m-numero').value.trim(),
         fecha: el('m-fecha').value,
         concepto,
         total: isNaN(total) ? null : total,
         estado: el('m-estado').value,
+        metodoPago,
         descripcion: el('m-descripcion').value.trim(),
       });
     }
   );
+
+  const estadoSel = el('m-estado');
+  const metodoGrupo = el('m-metodo-grupo');
+  const toggleMetodo = () => {
+    metodoGrupo.style.display = estadoSel.value === 'Pagada' ? '' : 'none';
+  };
+  estadoSel.addEventListener('change', toggleMetodo);
+  toggleMetodo();
 }
 
 // ── Confirm dialog ────────────────────────────────────────
@@ -172,9 +197,9 @@ export function openFacturaModal(existing, onSave) {
 export function openConfirm(message, onConfirm) {
   openModal(
     'Confirmar acción',
-    `<p class="confirm-msg">${message}</p>
+    `<p class="confirm-msg">${esc(message)}</p>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="document.getElementById('modal-overlay').classList.add('hidden')">Cancelar</button>
+      <button class="btn btn-secondary" data-modal-cancel>Cancelar</button>
       <button class="btn btn-danger" data-modal-confirm>Eliminar</button>
     </div>`,
     onConfirm
