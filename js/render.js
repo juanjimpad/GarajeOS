@@ -169,13 +169,15 @@ function facturaRow(clienteKey, cocheKey, facturaKey, f) {
   return `
     <div class="factura-row" data-action="edit-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}">
       <div class="factura-row-top">
-        <span class="factura-concepto">${esc(f.concepto) || 'Sin concepto'}</span>
-        <span class="factura-total">${formatCurrency(f.total)}</span>
-      </div>
-      <div class="factura-row-bot">
         <div class="factura-meta">
           <span class="factura-num">#${esc(f.numero) || facturaKey.slice(0, 6)}</span>
           <span class="factura-fecha">${formatDate(f.fecha)}</span>
+        </div>
+        <span class="factura-total">${formatCurrency(f.total)}</span>
+      </div>
+      <div class="factura-row-bot">
+        <div class="factura-bot-left">
+          <span class="factura-concepto">${esc(f.concepto) || 'Sin concepto'}</span>
           <span class="badge ${estadoClass}">${esc(f.estado) || 'Pendiente'}</span>
           ${metodoPagoIcon ? `<span class="factura-metodo" title="${esc(f.metodoPago)}">${metodoPagoIcon}</span>` : ''}
         </div>
