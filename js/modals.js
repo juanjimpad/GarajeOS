@@ -113,7 +113,7 @@ export function openCocheModal(existing, onSave) {
           ${FUEL_TYPES.map(f => `<option value="${f}" ${f === c.combustible ? 'selected' : ''}>${f}</option>`).join('')}
         </select>
       </label>
-      <label>Kilometraje<input id="m-kms" type="number" value="${c.kms || ''}" min="0" placeholder="Ej: 85000" /></label>
+      ${!isEdit ? `<label>Kilometraje inicial<input id="m-kms" type="number" value="${c.kms || ''}" min="0" placeholder="Ej: 85000" /></label>` : ''}
       <label>Bastidor (VIN)<input id="m-vin" type="text" value="${esc(c.vin)}" placeholder="17 caracteres" style="text-transform:uppercase" /></label>
       <label class="full">Notas<textarea id="m-notas" rows="2">${esc(c.notas)}</textarea></label>
     </div>
@@ -125,7 +125,8 @@ export function openCocheModal(existing, onSave) {
       const matricula = el('m-matricula').value.trim().toUpperCase();
       const marca = el('m-marca').value;
       if (!matricula || !marca) { alert('Matrícula y marca son obligatorias'); return Promise.resolve(); }
-      const kms = parseInt(el('m-kms').value, 10);
+      const kmsEl = el('m-kms');
+      const kms = kmsEl ? parseInt(kmsEl.value, 10) : NaN;
       return onSave({
         tipo: el('m-tipo').value,
         matricula,
@@ -167,6 +168,7 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
       <label>Fecha<input id="m-fecha" type="date" value="${f.fecha || todayISO()}" /></label>
       <label class="full">Concepto *<input id="m-concepto" type="text" value="${esc(f.concepto)}" placeholder="Descripción del trabajo realizado" /></label>
       <label>Total (€)<input id="m-total" type="number" step="0.01" value="${f.total || ''}" placeholder="0.00" /></label>
+      <label>Kilometraje<input id="m-kms" type="number" value="${f.kms || ''}" min="0" placeholder="Ej: 85000" /></label>
       <label>Estado
         <select id="m-estado">
           ${FACTURA_ESTADOS.map(e => `<option value="${e}" ${e === (f.estado || 'Pendiente') ? 'selected' : ''}>${e}</option>`).join('')}
@@ -191,12 +193,14 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
       const concepto = el('m-concepto').value.trim();
       if (!concepto) { alert('El concepto es obligatorio'); return Promise.resolve(); }
       const total = parseFloat(el('m-total').value);
+      const kms = parseInt(el('m-kms').value, 10);
       const metodoPago = el('modal-body').querySelector('input[name="metodoPago"]:checked')?.value || 'Efectivo';
       return onSave({
         numero: el('m-numero').value.trim(),
         fecha: el('m-fecha').value,
         concepto,
         total: isNaN(total) ? null : total,
+        kms: isNaN(kms) ? null : kms,
         estado: el('m-estado').value,
         metodoPago,
         descripcion: el('m-descripcion').value.trim(),

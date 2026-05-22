@@ -93,8 +93,52 @@ export function renderClienteDetail(clienteKey) {
         ? coches.map(([key, c]) => cocheCard(clienteKey, key, c)).join('')
         : '<p class="list-empty">Este cliente no tiene vehículos registrados.</p>'}
     </div>
+
+    ${clienteFacturasSection(clienteKey, coches)}
   `;
 
+}
+
+function clienteFacturasSection(clienteKey, coches) {
+  const all = [];
+  coches.forEach(([cocheKey, c]) => {
+    Object.entries(c.facturas || {}).forEach(([facturaKey, f]) => {
+      all.push({ cocheKey, facturaKey, f, coche: c });
+    });
+  });
+
+  if (!all.length) return '';
+
+  all.sort((a, b) => (b.f.fecha || '').localeCompare(a.f.fecha || ''));
+
+  const rows = all.map(({ cocheKey, facturaKey, f, coche }) => {
+    const estadoClass = { Pendiente: 'badge-warning', Pagada: 'badge-success', Cancelada: 'badge-danger' }[f.estado] || '';
+    const metodoPagoIcon = { Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago] || '';
+    return `
+      <div class="factura-row" data-action="edit-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}">
+        <div class="factura-row-top">
+          <div class="factura-meta">
+            <span class="factura-num">#${esc(f.numero) || facturaKey.slice(0, 6)}</span>
+            <span class="factura-fecha">${formatDate(f.fecha)}</span>
+          </div>
+          <span class="factura-total">${formatCurrency(f.total)}</span>
+        </div>
+        <div class="factura-row-bot">
+          <div class="factura-bot-left">
+            <span class="factura-concepto">${esc(f.concepto) || 'Sin concepto'}</span>
+            <span class="badge ${estadoClass}">${esc(f.estado) || 'Pendiente'}</span>
+            ${metodoPagoIcon ? `<span class="factura-metodo" title="${esc(f.metodoPago)}">${metodoPagoIcon}</span>` : ''}
+          </div>
+          <span class="factura-vehiculo-tag">${coche.tipo === 'Moto' ? '🏍️' : '🚗'} ${esc(coche.matricula) || ''}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="section-header">
+      <h3>Facturas (${all.length})</h3>
+    </div>
+    <div class="facturas-list">${rows}</div>`;
 }
 
 function cocheCard(clienteKey, cocheKey, c) {
@@ -144,10 +188,16 @@ export function renderCocheDetail(clienteKey, cocheKey) {
       ${infoItem('Año', coche.año)}
       ${infoItem('Color', coche.color)}
       ${infoItem('Combustible', coche.combustible)}
-      ${infoItem('Kilometraje', coche.kms ? coche.kms.toLocaleString('es-ES') + ' km' : null)}
+      ${infoItem('Kilometraje', (() => {
+        const fromFacturas = facturas.filter(([,f]) => f.kms != null).sort(([,a],[,b]) => (b.fecha||'').localeCompare(a.fecha||''));
+        const current = fromFacturas.length ? fromFacturas[0][1].kms : coche.kms;
+        return current ? current.toLocaleString('es-ES') + ' km' : null;
+      })())}
       ${infoItem('Bastidor (VIN)', coche.vin)}
       ${infoItem('Notas', coche.notas)}
     </div>
+
+    ${kmsTimeline(coche, facturas)}
 
     <div class="section-header">
       <h3>Facturas (${facturas.length})</h3>
@@ -161,6 +211,44 @@ export function renderCocheDetail(clienteKey, cocheKey) {
     </div>
   `;
 
+}
+
+function kmsTimeline(coche, facturas) {
+  const entries = [];
+
+  if (coche.kms != null) {
+    entries.push({ fecha: null, kms: coche.kms, label: 'Kilometraje inicial' });
+  }
+
+  facturas
+    .filter(([, f]) => f.kms != null)
+    .sort(([, a], [, b]) => (a.fecha || '').localeCompare(b.fecha || ''))
+    .forEach(([, f]) => entries.push({ fecha: f.fecha, kms: f.kms, label: f.concepto || 'Servicio' }));
+
+  if (!entries.length) return '';
+
+  const current = entries[entries.length - 1].kms;
+
+  const rows = entries.map((e, i) => {
+    const diff = i > 0 ? e.kms - entries[i - 1].kms : null;
+    const diffStr = diff != null ? `<span class="kms-diff">+${diff.toLocaleString('es-ES')} km</span>` : '';
+    return `
+      <div class="kms-entry">
+        <div class="kms-dot ${i === entries.length - 1 ? 'kms-dot-last' : ''}"></div>
+        <div class="kms-info">
+          <span class="kms-value">${e.kms.toLocaleString('es-ES')} km</span>
+          ${diffStr}
+          <span class="kms-label">${esc(e.label)}${e.fecha ? ` · ${formatDate(e.fecha)}` : ''}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="section-header">
+      <h3>Historial de kilometraje</h3>
+      <span class="kms-current">${current.toLocaleString('es-ES')} km actuales</span>
+    </div>
+    <div class="kms-timeline">${rows}</div>`;
 }
 
 function facturaRow(clienteKey, cocheKey, facturaKey, f) {
