@@ -50,6 +50,9 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
+# ── Claude Code ───────────────────────────────────────────
+.claude/settings.local.json
+
 # ── Editores ──────────────────────────────────────────────
 .idea/
 *.suo
