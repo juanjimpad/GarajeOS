@@ -1,4 +1,4 @@
-const CACHE = 'garajeos-v__VERSION__';
+const CACHE = 'garajeos-v2';
 const ASSETS = ['./', './index.html', './manifest.json', './favicon.svg', './css/style.css', './js/app.js', './js/theme.js', './js/state.js', './js/config.js', './js/utils.js', './js/db.js', './js/render.js', './js/modals.js', './js/firebase.js'];
 
 self.addEventListener('install', e => {
@@ -12,5 +12,11 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('firebaseio') || e.request.url.includes('googleapis')) return;
-  e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request)));
+  e.respondWith(
+    fetch(e.request).then(res => {
+      const clone = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return res;
+    }).catch(() => caches.match(e.request))
+  );
 });
