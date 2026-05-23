@@ -11,7 +11,7 @@ function openModal(title, bodyHTML, onConfirm) {
     confirmBtn.addEventListener('click', async () => {
       await onConfirm();
       closeModal();
-    });
+    }, { once: true });
   }
 
   el('modal-body').querySelectorAll('[data-modal-cancel]').forEach(btn => {
@@ -42,11 +42,6 @@ function getModelos(brand) {
   return [...models, 'Desconocido'];
 }
 
-function refreshCombobox(input, options) {
-  const dropdown = input.parentElement.querySelector('.ac-dropdown');
-  if (dropdown) dropdown.remove();
-  input.dataset.options = JSON.stringify(options);
-}
 
 function setupCombobox(inputId, options) {
   const input = el(inputId);

@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { formatDate, formatCurrency, normalizeText, el, escapeHTML as esc } from './utils.js';
-import { FACTURA_ESTADOS } from './config.js';
+import { FACTURA_ESTADOS, ESTADO_BADGE_CLASS, ESTADO_AVATAR_CLASS, METODO_PAGO_ICON } from './config.js';
 
 // ── Sidebar lists ─────────────────────────────────────────
 
@@ -111,28 +111,9 @@ function clienteFacturasSection(clienteKey, coches) {
 
   all.sort((a, b) => (b.f.fecha || '').localeCompare(a.f.fecha || ''));
 
-  const rows = all.map(({ cocheKey, facturaKey, f, coche }) => {
-    const estadoClass = { Pendiente: 'badge-warning', Pagada: 'badge-success', Cancelada: 'badge-danger' }[f.estado] || '';
-    const metodoPagoIcon = { Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago] || '';
-    return `
-      <div class="factura-row" data-action="edit-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}">
-        <div class="factura-row-top">
-          <div class="factura-meta">
-            <span class="factura-num">#${esc(f.numero) || facturaKey.slice(0, 6)}</span>
-            <span class="factura-fecha">${formatDate(f.fecha)}</span>
-          </div>
-          <span class="factura-total">${formatCurrency(f.total)}</span>
-        </div>
-        <div class="factura-row-bot">
-          <div class="factura-bot-left">
-            <span class="factura-concepto">${esc(f.concepto) || 'Sin concepto'}</span>
-            <span class="badge ${estadoClass}">${esc(f.estado) || 'Pendiente'}</span>
-            ${metodoPagoIcon ? `<span class="factura-metodo" title="${esc(f.metodoPago)}">${metodoPagoIcon}</span>` : ''}
-          </div>
-          <span class="factura-vehiculo-tag">${coche.tipo === 'Moto' ? '🏍️' : '🚗'} ${esc(coche.matricula) || ''}</span>
-        </div>
-      </div>`;
-  }).join('');
+  const rows = all.map(({ cocheKey, facturaKey, f, coche }) =>
+    facturaRow(clienteKey, cocheKey, facturaKey, f, coche)
+  ).join('');
 
   return `
     <div class="section-header">
@@ -251,9 +232,14 @@ function kmsTimeline(coche, facturas) {
     <div class="kms-timeline">${rows}</div>`;
 }
 
-function facturaRow(clienteKey, cocheKey, facturaKey, f) {
-  const estadoClass = { Pendiente: 'badge-warning', Pagada: 'badge-success', Cancelada: 'badge-danger' }[f.estado] || '';
-  const metodoPagoIcon = { Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[f.metodoPago] || '';
+function facturaRow(clienteKey, cocheKey, facturaKey, f, coche = null) {
+  const estadoClass = ESTADO_BADGE_CLASS[f.estado] || '';
+  const metodoPagoIcon = METODO_PAGO_ICON[f.metodoPago] || '';
+  const rightSlot = coche
+    ? `<span class="factura-vehiculo-tag">${coche.tipo === 'Moto' ? '🏍️' : '🚗'} ${esc(coche.matricula) || ''}</span>`
+    : `<button class="icon-btn danger-hover" data-action="delete-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}" title="Eliminar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+       </button>`;
   return `
     <div class="factura-row" data-action="edit-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}">
       <div class="factura-row-top">
@@ -269,9 +255,7 @@ function facturaRow(clienteKey, cocheKey, facturaKey, f) {
           <span class="badge ${estadoClass}">${esc(f.estado) || 'Pendiente'}</span>
           ${metodoPagoIcon ? `<span class="factura-metodo" title="${esc(f.metodoPago)}">${metodoPagoIcon}</span>` : ''}
         </div>
-        <button class="icon-btn danger-hover" data-action="delete-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}" title="Eliminar">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-        </button>
+        ${rightSlot}
       </div>
     </div>`;
 }
@@ -323,8 +307,8 @@ export function renderFacturasList() {
 }
 
 function facturaItem({ clienteKey, cocheKey, facturaKey, factura, cliente, coche }) {
-  const avatarClass = { Pendiente: 'avatar-warning', Pagada: 'avatar-success', Cancelada: 'avatar-danger' }[factura.estado] || '';
-  const metodoPagoIcon = { Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' }[factura.metodoPago] || '';
+  const avatarClass = ESTADO_AVATAR_CLASS[factura.estado] || '';
+  const metodoPagoIcon = METODO_PAGO_ICON[factura.metodoPago] || '';
   return `
     <li class="item-row factura-item" data-action="select-coche" data-cliente-key="${clienteKey}" data-key="${cocheKey}">
       <div class="item-avatar ${avatarClass}">

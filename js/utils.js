@@ -13,9 +13,6 @@ export function normalizeText(str) {
   return (str || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
-export function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-}
 
 export function todayISO() {
   return new Date().toISOString().split('T')[0];

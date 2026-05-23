@@ -86,3 +86,7 @@ export const FUEL_TYPES = ['Gasolina', 'Diésel', 'Híbrido', 'Híbrido enchufab
 export const FACTURA_ESTADOS = ['Pendiente', 'Pagada', 'Cancelada'];
 
 export const PAYMENT_METHODS = ['Efectivo', 'Tarjeta', 'Bizum'];
+
+export const ESTADO_BADGE_CLASS = { Pendiente: 'badge-warning', Pagada: 'badge-success', Cancelada: 'badge-danger' };
+export const ESTADO_AVATAR_CLASS = { Pendiente: 'avatar-warning', Pagada: 'avatar-success', Cancelada: 'avatar-danger' };
+export const METODO_PAGO_ICON = { Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' };
