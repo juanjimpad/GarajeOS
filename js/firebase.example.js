@@ -4,13 +4,13 @@ import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROJECT.firebaseapp.com",
-  databaseURL: "https://TU_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "TU_PROJECT",
-  storageBucket: "TU_PROJECT.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
+  apiKey: "%%FIREBASE_API_KEY%%",
+  authDomain: "%%FIREBASE_AUTH_DOMAIN%%",
+  databaseURL: "%%FIREBASE_DATABASE_URL%%",
+  projectId: "%%FIREBASE_PROJECT_ID%%",
+  storageBucket: "%%FIREBASE_STORAGE_BUCKET%%",
+  messagingSenderId: "%%FIREBASE_MESSAGING_SENDER_ID%%",
+  appId: "%%FIREBASE_APP_ID%%"
 };
 
 const app = initializeApp(firebaseConfig);
