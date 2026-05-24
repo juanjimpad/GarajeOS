@@ -62,10 +62,12 @@ function citaToVEVENT(cita, citaKey, clientes) {
   const dtstart = toICSDate(cita.fechaInicio);
   const dtend = cita.fechaFin ? nextDay(cita.fechaFin) : nextDay(cita.fechaInicio);
 
+  const titular = clientes?.[cita.clienteKey]?.nombre || cita.vehiculoTemp?.titular || null;
   const vehicleLabel = getVehicleLabel(cita, clientes);
   const summary = [cita.descripcion || 'Cita', vehicleLabel].filter(Boolean).join(' · ');
 
   const descParts = [];
+  if (titular) descParts.push('Titular: ' + titular);
   if (vehicleLabel) descParts.push('Vehículo: ' + vehicleLabel);
   if (cita.estado) descParts.push('Estado: ' + cita.estado);
   if (cita.notas) descParts.push(cita.notas);
