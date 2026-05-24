@@ -411,6 +411,17 @@ async function initApp() {
 // ── UI estática (no requiere Firebase) ────────────────────
 
 function setupStaticUI() {
+  // Banner de entorno de desarrollo
+  (function() {
+    const host = location.hostname;
+    if (!host.includes('.pages.dev') && !host.includes('workers.dev') && host !== 'localhost') return;
+    const branch = host.split('.')[0];
+    const label = (branch && branch !== 'garajeos') ? `rama: ${branch}` : 'preview';
+    const banner = el('dev-banner');
+    banner.textContent = `⚠️ Entorno de desarrollo · ${label}`;
+    banner.classList.remove('hidden');
+  })();
+
   // Mostrar icono suscripción si la pestaña inicial es calendario
   if (state.activeTab === 'calendario') el('btn-cal-subscribe').classList.remove('hidden');
 
