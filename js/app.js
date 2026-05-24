@@ -338,22 +338,22 @@ async function initApp() {
 
       case 'open-cal-subscription': {
         const secret = calendarSecret;
-        const webcalUrl = secret ? `webcal://${location.host}/calendar/${secret}` : null;
-        const httpsUrl  = secret ? `${location.origin}/calendar/${secret}` : null;
+        const httpsUrl   = secret ? `${location.origin}/calendar/${secret}` : null;
+        const webcalsUrl = secret ? `webcals://${location.host}/calendar/${secret}` : null;
         el('modal-title').textContent = 'Suscribir calendario';
         el('modal-body').innerHTML = `
           <div class="cal-sub-modal">
             <p class="cal-sub-desc">Añade las citas del taller a tu aplicación de calendario favorita. Se actualizará automáticamente.</p>
             <div class="cal-sub-options">
-              <a class="cal-sub-option ${!webcalUrl ? 'disabled' : ''}" ${webcalUrl ? `href="https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl)}" target="_blank" rel="noopener"` : ''}>
+              <a class="cal-sub-option ${!httpsUrl ? 'disabled' : ''}" ${httpsUrl ? `href="https://calendar.google.com/calendar/r?cid=${encodeURIComponent(httpsUrl)}" target="_blank" rel="noopener"` : ''}>
                 <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.5 12.06c0-.66-.06-1.3-.17-1.91H12v3.61h5.33a4.56 4.56 0 0 1-1.98 3v2.48h3.2c1.87-1.72 2.95-4.26 2.95-7.18z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.89 6.61-2.42l-3.2-2.48c-.9.6-2.04.95-3.41.95-2.62 0-4.84-1.77-5.63-4.15H3.06v2.56A9.99 9.99 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.37 13.9A6.01 6.01 0 0 1 6.06 12c0-.66.11-1.3.31-1.9V7.54H3.06A9.99 9.99 0 0 0 2 12c0 1.61.39 3.13 1.06 4.46l3.31-2.56z"/><path fill="#EA4335" d="M12 5.9c1.48 0 2.8.51 3.84 1.5l2.87-2.87C16.95 2.99 14.7 2 12 2A9.99 9.99 0 0 0 3.06 7.54l3.31 2.56C7.16 7.67 9.38 5.9 12 5.9z"/></svg>
                 <span>Google Calendar</span>
               </a>
-              <a class="cal-sub-option ${!webcalUrl ? 'disabled' : ''}" ${webcalUrl ? `href="${webcalUrl}"` : ''}>
+              <a class="cal-sub-option ${!webcalsUrl ? 'disabled' : ''}" ${webcalsUrl ? `href="${webcalsUrl}"` : ''}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="5" fill="#fff"/><rect x="2" y="2" width="20" height="20" rx="4" fill="#FF3B30"/><rect x="2" y="7" width="20" height="13" rx="0" fill="#fff"/><rect x="2" y="7" width="20" height="3" fill="#FF3B30"/><text x="12" y="19" text-anchor="middle" font-size="7" font-weight="bold" fill="#1C1C1E" font-family="sans-serif">CAL</text></svg>
                 <span>Apple Calendar</span>
               </a>
-              <a class="cal-sub-option ${!webcalUrl ? 'disabled' : ''}" ${webcalUrl ? `href="https://outlook.live.com/calendar/0/addfromweb?url=${encodeURIComponent(webcalUrl)}" target="_blank" rel="noopener"` : ''}>
+              <a class="cal-sub-option ${!httpsUrl ? 'disabled' : ''}" ${httpsUrl ? `href="https://outlook.live.com/calendar/0/addfromweb?url=${encodeURIComponent(httpsUrl)}" target="_blank" rel="noopener"` : ''}>
                 <svg width="22" height="22" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#0078D4"/><path fill="#fff" d="M4 6h7v5H4zm9 0h7v5h-7zM4 13h7v5H4zm9 0h7v5h-7z"/></svg>
                 <span>Outlook</span>
               </a>
@@ -410,6 +410,9 @@ async function initApp() {
 // ── UI estática (no requiere Firebase) ────────────────────
 
 function setupStaticUI() {
+  // Mostrar icono suscripción si la pestaña inicial es calendario
+  if (state.activeTab === 'calendario') el('btn-cal-subscribe').classList.remove('hidden');
+
   // Footer: tema
   document.querySelectorAll('.theme-btn').forEach(btn => {
     btn.addEventListener('click', () => setTheme(btn.dataset.themeVal));
@@ -456,6 +459,7 @@ function setupStaticUI() {
       btn.classList.add('active');
       state.activeTab = btn.dataset.tab;
       el(`panel-${btn.dataset.tab}`).classList.add('active');
+      el('btn-cal-subscribe').classList.toggle('hidden', btn.dataset.tab !== 'calendario');
       if (btn.dataset.tab === 'calendario') renderAgenda();
     });
   });

@@ -1451,14 +1451,6 @@ label {
 .ag-chip:hover { opacity: 0.8; }
 .ag-chip-cont { opacity: 0.6; font-weight: 400; }
 
-/* Calendar subscription button in toolbar */
-.ag-sub-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-left: 6px;
-}
-
 /* Calendar subscription modal */
 .cal-sub-modal { display: flex; flex-direction: column; gap: 16px; }
 .cal-sub-desc { font-size: 13px; color: var(--text-muted); margin: 0; }
