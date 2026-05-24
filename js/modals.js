@@ -1,5 +1,5 @@
 import { el, todayISO, escapeHTML as esc } from './utils.js';
-import { CAR_BRANDS, BRAND_NAMES, MOTO_BRANDS, MOTO_BRAND_NAMES, VEHICLE_TYPES, FUEL_TYPES, FACTURA_ESTADOS, PAYMENT_METHODS } from './config.js';
+import { CAR_BRANDS, BRAND_NAMES, MOTO_BRANDS, MOTO_BRAND_NAMES, VEHICLE_TYPES, FUEL_TYPES, FACTURA_ESTADOS, PAYMENT_METHODS, PIEZAS_COMUNES, IVA } from './config.js';
 
 function openModal(title, bodyHTML, onConfirm) {
   el('modal-title').textContent = title;
@@ -98,7 +98,7 @@ export function openClienteModal(existing, onSave) {
       <label>Email<input id="m-email" type="email" value="${esc(c.email)}" placeholder="correo@ejemplo.com" /></label>
       <label>NIF / DNI<input id="m-nif" type="text" value="${esc(c.nif)}" placeholder="12345678A" /></label>
       <label class="full">Dirección<input id="m-direccion" type="text" value="${esc(c.direccion)}" placeholder="Calle, número, ciudad" /></label>
-      <label class="full">Notas<textarea id="m-notas" rows="2" placeholder="Observaciones...">${esc(c.notas)}</textarea></label>
+      <label class="full">Notas<textarea id="m-notas" rows="2" placeholder="Observaciones..." style="resize:none;overflow:hidden">${esc(c.notas)}</textarea></label>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" data-modal-cancel>Cancelar</button>
@@ -117,6 +117,10 @@ export function openClienteModal(existing, onSave) {
       });
     }
   );
+  const notasCliente = el('m-notas');
+  const autoResizeCliente = () => { notasCliente.style.height = 'auto'; notasCliente.style.height = notasCliente.scrollHeight + 'px'; };
+  notasCliente.addEventListener('input', autoResizeCliente);
+  autoResizeCliente();
 }
 
 // ── Coche modal ───────────────────────────────────────────
@@ -148,7 +152,7 @@ export function openCocheModal(existing, onSave) {
       </label>
       ${!isEdit ? `<label>Kilometraje inicial<input id="m-kms" type="number" value="${c.kms || ''}" min="0" placeholder="Ej: 85000" /></label>` : ''}
       <label>Bastidor (VIN)<input id="m-vin" type="text" value="${esc(c.vin)}" placeholder="17 caracteres" style="text-transform:uppercase" /></label>
-      <label class="full">Notas<textarea id="m-notas" rows="2">${esc(c.notas)}</textarea></label>
+      <label class="full">Notas<textarea id="m-notas" rows="2" style="resize:none;overflow:hidden">${esc(c.notas)}</textarea></label>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" data-modal-cancel>Cancelar</button>
@@ -178,6 +182,11 @@ export function openCocheModal(existing, onSave) {
   setupCombobox('m-marca', brandNames);
   setupCombobox('m-modelo', getModelos(c.marca));
 
+  const notasCoche = el('m-notas');
+  const autoResizeCoche = () => { notasCoche.style.height = 'auto'; notasCoche.style.height = notasCoche.scrollHeight + 'px'; };
+  notasCoche.addEventListener('input', autoResizeCoche);
+  autoResizeCoche();
+
   const tipoSel = el('m-tipo');
   tipoSel.addEventListener('change', () => {
     const names = tipoSel.value === 'Moto' ? MOTO_BRAND_NAMES : BRAND_NAMES;
@@ -194,21 +203,58 @@ export function openCocheModal(existing, onSave) {
 export function openFacturaModal(existing, onSave, defaults = {}) {
   const isEdit = !!existing;
   const f = existing || defaults;
+  const piezas = f.piezas || [];
+
   openModal(
     isEdit ? 'Editar factura' : 'Nueva factura',
     `<div class="form-grid">
       <label>Número de factura
-        <input id="m-numero" type="text" value="${f.numero || ''}" placeholder="Ej: 2026-001" readonly class="input-readonly" />
+        <input id="m-numero" type="text" value="${esc(f.numero || '')}" readonly class="input-readonly" />
       </label>
       <label>Fecha<input id="m-fecha" type="date" value="${f.fecha || todayISO()}" /></label>
       <label class="full">Concepto *<input id="m-concepto" type="text" value="${esc(f.concepto)}" placeholder="Descripción del trabajo realizado" /></label>
-      <label>Total (€)<input id="m-total" type="number" step="0.01" value="${f.total || ''}" placeholder="0.00" /></label>
       <label>Kilometraje<input id="m-kms" type="number" value="${f.kms || ''}" min="0" placeholder="Ej: 85000" /></label>
       <label>Estado
         <select id="m-estado">
           ${FACTURA_ESTADOS.map(e => `<option value="${e}" ${e === (f.estado || 'Pendiente') ? 'selected' : ''}>${e}</option>`).join('')}
         </select>
       </label>
+    </div>
+
+    <div class="factura-desglose">
+      <div class="desglose-header">
+        <span>Mano de obra</span>
+        <div class="desglose-mdo">
+          <input id="m-mano-obra" type="number" step="0.01" min="0" value="${f.manoDeObra || ''}" placeholder="0.00" />
+          <span class="desglose-eur">€</span>
+        </div>
+      </div>
+
+      <div class="desglose-piezas-header">
+        <span>Piezas</span>
+        <button type="button" class="btn btn-sm btn-secondary" id="btn-add-pieza">+ Añadir pieza</button>
+      </div>
+      <div id="m-piezas-list">
+        ${piezas.map((p, i) => piezaRow(p, i)).join('')}
+      </div>
+
+      <div class="desglose-totales">
+        <label class="desglose-iva-toggle">
+          <input type="checkbox" id="m-iva" ${f.iva ? 'checked' : ''} />
+          Aplicar IVA (21%)
+        </label>
+        <div class="desglose-total-row">
+          <span>Subtotal</span>
+          <span id="m-subtotal">—</span>
+        </div>
+        <div class="desglose-total-row desglose-total-final">
+          <span>Total</span>
+          <span id="m-total-display">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-grid" style="margin-top:16px">
       <label id="m-metodo-grupo" class="full">Método de pago
         <div class="radio-group">
           ${PAYMENT_METHODS.map(m => `
@@ -218,7 +264,7 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
             </label>`).join('')}
         </div>
       </label>
-      <label class="full">Descripción detallada<textarea id="m-descripcion" rows="3" placeholder="Piezas, mano de obra, etc.">${esc(f.descripcion)}</textarea></label>
+      <label class="full">Notas<textarea id="m-descripcion" rows="2" placeholder="Observaciones..." style="resize:none;overflow:hidden">${esc(f.descripcion)}</textarea></label>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" data-modal-cancel>Cancelar</button>
@@ -227,14 +273,22 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
     () => {
       const concepto = el('m-concepto').value.trim();
       if (!concepto) { alert('El concepto es obligatorio'); return Promise.resolve(); }
-      const total = parseFloat(el('m-total').value);
       const kms = parseInt(el('m-kms').value, 10);
+      const manoDeObra = parseFloat(el('m-mano-obra').value) || 0;
+      const iva = el('m-iva').checked;
+      const piezasData = recogerPiezas();
+      const subtotal = manoDeObra + piezasData.reduce((s, p) => s + p.cantidad * p.precioUnitario, 0);
+      const total = iva ? subtotal * (1 + IVA) : subtotal;
       const metodoPago = el('modal-body').querySelector('input[name="metodoPago"]:checked')?.value || 'Efectivo';
       return onSave({
         numero: el('m-numero').value.trim(),
         fecha: el('m-fecha').value,
         concepto,
-        total: isNaN(total) ? null : total,
+        manoDeObra,
+        piezas: piezasData,
+        iva,
+        subtotal: Math.round(subtotal * 100) / 100,
+        total: Math.round(total * 100) / 100,
         kms: isNaN(kms) ? null : kms,
         estado: el('m-estado').value,
         metodoPago,
@@ -243,13 +297,75 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
     }
   );
 
+  // Listeners
   const estadoSel = el('m-estado');
   const metodoGrupo = el('m-metodo-grupo');
-  const toggleMetodo = () => {
-    metodoGrupo.style.display = estadoSel.value === 'Pagada' ? '' : 'none';
-  };
+  const toggleMetodo = () => { metodoGrupo.style.display = estadoSel.value === 'Pagada' ? '' : 'none'; };
   estadoSel.addEventListener('change', toggleMetodo);
   toggleMetodo();
+
+  const textarea = el('m-descripcion');
+  const autoResize = () => { textarea.style.height = 'auto'; textarea.style.height = textarea.scrollHeight + 'px'; };
+  textarea.addEventListener('input', autoResize);
+  autoResize();
+
+  el('btn-add-pieza').addEventListener('click', () => {
+    const list = el('m-piezas-list');
+    const i = list.children.length;
+    list.insertAdjacentHTML('beforeend', piezaRow({}, i));
+    setupCombobox(`m-pieza-nombre-${i}`, PIEZAS_COMUNES);
+    actualizarTotal();
+  });
+
+  // Setup autocomplete en piezas existentes
+  piezas.forEach((_, i) => setupCombobox(`m-pieza-nombre-${i}`, PIEZAS_COMUNES));
+
+  el('modal-body').addEventListener('click', e => {
+    if (e.target.closest('.btn-remove-pieza')) {
+      e.target.closest('.pieza-row').remove();
+      actualizarTotal();
+    }
+  });
+
+  el('modal-body').addEventListener('input', e => {
+    if (e.target.matches('#m-mano-obra, .pieza-cantidad, .pieza-precio, #m-iva')) actualizarTotal();
+  });
+  el('m-iva').addEventListener('change', actualizarTotal);
+
+  actualizarTotal();
+}
+
+function piezaRow(p = {}, i) {
+  return `
+    <div class="pieza-row">
+      <div class="ac-wrap pieza-nombre-wrap">
+        <input id="m-pieza-nombre-${i}" class="pieza-nombre" type="text" value="${esc(p.nombre || '')}" placeholder="Nombre de la pieza" autocomplete="off" />
+      </div>
+      <input class="pieza-cantidad" type="number" min="1" value="${p.cantidad || 1}" placeholder="Ud." />
+      <input class="pieza-precio" type="number" step="0.01" min="0" value="${p.precioUnitario || ''}" placeholder="€/ud." />
+      <button type="button" class="btn-remove-pieza icon-btn danger-hover" title="Eliminar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+    </div>`;
+}
+
+function recogerPiezas() {
+  return Array.from(el('m-piezas-list').querySelectorAll('.pieza-row')).map(row => ({
+    nombre: row.querySelector('.pieza-nombre').value.trim(),
+    cantidad: parseInt(row.querySelector('.pieza-cantidad').value, 10) || 1,
+    precioUnitario: parseFloat(row.querySelector('.pieza-precio').value) || 0,
+  })).filter(p => p.nombre);
+}
+
+function actualizarTotal() {
+  const manoDeObra = parseFloat(el('m-mano-obra')?.value) || 0;
+  const piezasTotal = recogerPiezas().reduce((s, p) => s + p.cantidad * p.precioUnitario, 0);
+  const subtotal = manoDeObra + piezasTotal;
+  const iva = el('m-iva')?.checked;
+  const total = iva ? subtotal * (1 + IVA) : subtotal;
+  const fmt = v => v.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+  if (el('m-subtotal')) el('m-subtotal').textContent = fmt(subtotal);
+  if (el('m-total-display')) el('m-total-display').textContent = fmt(total);
 }
 
 // ── Confirm dialog ────────────────────────────────────────

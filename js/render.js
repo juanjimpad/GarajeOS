@@ -18,6 +18,7 @@ export function renderClientesList() {
         <div class="item-info">
           <span class="item-name">${esc(c.nombre) || 'Sin nombre'}</span>
           <span class="item-sub">${esc(c.telefono) || esc(c.email) || ''}</span>
+          ${c.notas ? `<span class="item-note">${esc(c.notas)}</span>` : ''}
         </div>
         <span class="item-badge">${countCoches(key)}</span>
       </li>`).join('')
@@ -67,7 +68,6 @@ export function renderClienteDetail(clienteKey) {
       <div class="detail-avatar">${(cliente.nombre || '?')[0].toUpperCase()}</div>
       <div class="detail-title-group">
         <h2>${esc(cliente.nombre) || 'Sin nombre'}</h2>
-        <p class="detail-subtitle">${esc(cliente.email) || ''}</p>
       </div>
       <div class="detail-actions">
         <button class="btn btn-sm btn-secondary" data-action="edit-cliente" data-key="${clienteKey}">Editar</button>
@@ -80,7 +80,7 @@ export function renderClienteDetail(clienteKey) {
       ${infoItem('Email', cliente.email)}
       ${infoItem('Dirección', cliente.direccion)}
       ${infoItem('NIF/DNI', cliente.nif)}
-      ${infoItem('Notas', cliente.notas)}
+      ${infoItemFull('Notas', cliente.notas)}
     </div>
 
     <div class="section-header">
@@ -175,7 +175,7 @@ export function renderCocheDetail(clienteKey, cocheKey) {
         return current ? current.toLocaleString('es-ES') + ' km' : null;
       })())}
       ${infoItem('Bastidor (VIN)', coche.vin)}
-      ${infoItem('Notas', coche.notas)}
+      ${infoItemFull('Notas', coche.notas)}
     </div>
 
     ${kmsTimeline(coche, facturas)}
@@ -240,6 +240,15 @@ function facturaRow(clienteKey, cocheKey, facturaKey, f, coche = null) {
     : `<button class="icon-btn danger-hover" data-action="delete-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}" title="Eliminar">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
        </button>`;
+
+  const piezas = f.piezas || [];
+  const desglose = (f.manoDeObra != null || piezas.length > 0) ? `
+    <div class="factura-desglose-row">
+      ${f.manoDeObra ? `<span>Mano de obra: ${formatCurrency(f.manoDeObra)}</span>` : ''}
+      ${piezas.length ? `<span>${piezas.length} pieza${piezas.length !== 1 ? 's' : ''}</span>` : ''}
+      ${f.iva ? `<span class="factura-iva-tag">+IVA 21%</span>` : ''}
+    </div>` : '';
+
   return `
     <div class="factura-row" data-action="edit-factura" data-cliente-key="${clienteKey}" data-coche-key="${cocheKey}" data-key="${facturaKey}">
       <div class="factura-row-top">
@@ -257,6 +266,7 @@ function facturaRow(clienteKey, cocheKey, facturaKey, f, coche = null) {
         </div>
         ${rightSlot}
       </div>
+      ${desglose}
     </div>`;
 }
 
@@ -265,6 +275,11 @@ function facturaRow(clienteKey, cocheKey, facturaKey, f, coche = null) {
 function infoItem(label, value) {
   if (!value) return '';
   return `<div class="info-item"><span class="info-label">${label}</span><span class="info-value">${esc(value)}</span></div>`;
+}
+
+function infoItemFull(label, value) {
+  if (!value) return '';
+  return `<div class="info-item info-item-full"><span class="info-label">${label}</span><span class="info-value">${esc(value)}</span></div>`;
 }
 
 // ── Sidebar: Facturas ─────────────────────────────────────

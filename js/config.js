@@ -90,3 +90,38 @@ export const PAYMENT_METHODS = ['Efectivo', 'Tarjeta', 'Bizum'];
 export const ESTADO_BADGE_CLASS = { Pendiente: 'badge-warning', Pagada: 'badge-success', Cancelada: 'badge-danger' };
 export const ESTADO_AVATAR_CLASS = { Pendiente: 'avatar-warning', Pagada: 'avatar-success', Cancelada: 'avatar-danger' };
 export const METODO_PAGO_ICON = { Efectivo: '💵', Tarjeta: '💳', Bizum: '📱' };
+
+export const IVA = 0.21;
+
+export const PIEZAS_COMUNES = [
+  // Aceites y fluidos
+  'Aceite de motor 5W30', 'Aceite de motor 5W40', 'Aceite de motor 10W40', 'Aceite de caja de cambios',
+  'Líquido de frenos DOT4', 'Líquido refrigerante', 'Líquido dirección asistida', 'Líquido limpiaparabrisas',
+  // Filtros
+  'Filtro de aceite', 'Filtro de aire', 'Filtro de habitáculo', 'Filtro de combustible', 'Filtro de partículas (DPF)',
+  // Frenos
+  'Pastillas de freno delanteras', 'Pastillas de freno traseras', 'Discos de freno delanteros', 'Discos de freno traseros',
+  'Zapatas de freno', 'Cilindro de freno', 'Latiguillos de freno', 'Bomba de freno',
+  // Suspensión y dirección
+  'Amortiguador delantero', 'Amortiguador trasero', 'Muelle de suspensión', 'Rótula de dirección',
+  'Barra estabilizadora', 'Silent block', 'Bieleta estabilizadora', 'Cremallera de dirección',
+  // Motor
+  'Correa de distribución', 'Kit de distribución', 'Tensor de distribución', 'Bomba de agua',
+  'Correa auxiliar', 'Bujías', 'Bobina de encendido', 'Inyector', 'Bomba de combustible',
+  'Termostato', 'Junta de culata', 'Culata', 'Árbol de levas', 'Cadena de distribución',
+  // Embrague y transmisión
+  'Kit de embrague', 'Disco de embrague', 'Plato de presión', 'Rodamiento de empuje',
+  'Junta homocinética', 'Palier', 'Caja de cambios',
+  // Electricidad
+  'Batería', 'Alternador', 'Motor de arranque', 'Sensor de oxígeno (lambda)',
+  'Sensor de temperatura', 'Sensor ABS', 'Centralita', 'Relé',
+  // Escape
+  'Catalizador', 'Silenciador', 'Tubo de escape', 'Junta de escape', 'Sonda lambda',
+  // Neumáticos y ruedas
+  'Neumático', 'Llanta', 'Válvula de rueda', 'Equilibrado', 'Alineación',
+  // Carrocería y cristales
+  'Parabrisas', 'Luna trasera', 'Retrovisor', 'Bombilla delantera', 'Bombilla trasera',
+  'Kit de xenón', 'Faro delantero', 'Piloto trasero',
+  // Mantenimiento general
+  'Revisión completa', 'Mano de obra adicional', 'Desplazamiento', 'Diagnóstico OBD',
+].sort();
