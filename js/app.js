@@ -338,8 +338,8 @@ async function initApp() {
 
       case 'open-cal-subscription': {
         const secret = calendarSecret;
-        const httpsUrl   = secret ? `${location.origin}/calendar/${secret}` : null;
-        const webcalsUrl = secret ? `webcals://${location.host}/calendar/${secret}` : null;
+        const httpsUrl  = secret ? `${location.origin}/calendar/${secret}` : null;
+        const webcalUrl = secret ? `webcal://${location.host}/calendar/${secret}` : null;
         el('modal-title').textContent = 'Suscribir calendario';
         el('modal-body').innerHTML = `
           <div class="cal-sub-modal">
@@ -349,21 +349,14 @@ async function initApp() {
                 <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.5 12.06c0-.66-.06-1.3-.17-1.91H12v3.61h5.33a4.56 4.56 0 0 1-1.98 3v2.48h3.2c1.87-1.72 2.95-4.26 2.95-7.18z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.89 6.61-2.42l-3.2-2.48c-.9.6-2.04.95-3.41.95-2.62 0-4.84-1.77-5.63-4.15H3.06v2.56A9.99 9.99 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.37 13.9A6.01 6.01 0 0 1 6.06 12c0-.66.11-1.3.31-1.9V7.54H3.06A9.99 9.99 0 0 0 2 12c0 1.61.39 3.13 1.06 4.46l3.31-2.56z"/><path fill="#EA4335" d="M12 5.9c1.48 0 2.8.51 3.84 1.5l2.87-2.87C16.95 2.99 14.7 2 12 2A9.99 9.99 0 0 0 3.06 7.54l3.31 2.56C7.16 7.67 9.38 5.9 12 5.9z"/></svg>
                 <span>Google Calendar</span>
               </a>
-              <button class="cal-sub-option ${!webcalsUrl ? 'disabled' : ''}" id="btn-apple-cal">
+              <a class="cal-sub-option ${!webcalUrl ? 'disabled' : ''}" ${webcalUrl ? `href="${webcalUrl}"` : ''}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="5" fill="#fff"/><rect x="2" y="2" width="20" height="20" rx="4" fill="#FF3B30"/><rect x="2" y="7" width="20" height="13" rx="0" fill="#fff"/><rect x="2" y="7" width="20" height="3" fill="#FF3B30"/><text x="12" y="19" text-anchor="middle" font-size="7" font-weight="bold" fill="#1C1C1E" font-family="sans-serif">CAL</text></svg>
                 <span>Apple Calendar</span>
-              </button>
+              </a>
               <a class="cal-sub-option ${!httpsUrl ? 'disabled' : ''}" ${httpsUrl ? `href="https://outlook.live.com/calendar/0/addfromweb?url=${encodeURIComponent(httpsUrl)}" target="_blank" rel="noopener"` : ''}>
                 <svg width="22" height="22" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#0078D4"/><path fill="#fff" d="M4 6h7v5H4zm9 0h7v5h-7zM4 13h7v5H4zm9 0h7v5h-7z"/></svg>
                 <span>Outlook</span>
               </a>
-            </div>
-            <div id="apple-cal-hint" class="cal-sub-apple-hint hidden">
-              <p>Abre <strong>Calendario</strong> → <strong>Archivo</strong> → <strong>Nueva suscripción a calendario</strong> y pega esta URL:</p>
-              <div class="cal-sub-copy-row">
-                <input class="cal-sub-copy-input" type="text" readonly value="${webcalsUrl || ''}" />
-                <button class="btn btn-sm" id="btn-copy-webcals-url">Copiar</button>
-              </div>
             </div>
             <div class="cal-sub-copy-row">
               <input class="cal-sub-copy-input" type="text" readonly value="${httpsUrl || 'Cargando…'}" />
@@ -377,22 +370,6 @@ async function initApp() {
           navigator.clipboard.writeText(httpsUrl).then(() => {
             this.textContent = '✓ Copiado';
             setTimeout(() => this.textContent = 'Copiar enlace', 2000);
-          });
-        });
-        document.getElementById('btn-apple-cal')?.addEventListener('click', function() {
-          // Intentar abrir webcals:// directamente; si falla, mostrar instrucciones manuales
-          const hint = document.getElementById('apple-cal-hint');
-          try {
-            window.location.href = webcalsUrl;
-            setTimeout(() => hint.classList.remove('hidden'), 1500);
-          } catch {
-            hint.classList.remove('hidden');
-          }
-        });
-        document.getElementById('btn-copy-webcals-url')?.addEventListener('click', function() {
-          navigator.clipboard.writeText(webcalsUrl).then(() => {
-            this.textContent = '✓ Copiado';
-            setTimeout(() => this.textContent = 'Copiar', 2000);
           });
         });
         break;
