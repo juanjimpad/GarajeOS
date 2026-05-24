@@ -1492,6 +1492,18 @@ label {
   color: var(--text-muted);
   min-width: 0;
 }
+.cal-sub-apple-hint {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cal-sub-apple-hint p { margin: 0; color: var(--text-muted); }
+.cal-sub-apple-hint strong { color: var(--text); }
 .cal-sub-reset {
   background: none;
   border: none;
