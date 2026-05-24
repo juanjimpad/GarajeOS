@@ -219,6 +219,21 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
   const f = existing || defaults;
   const piezas = f.piezas || [];
 
+  const clienteKey = defaults.clienteKey || null;
+  const cocheKey   = defaults.cocheKey   || null;
+  const cliente    = clienteKey ? state.clientes[clienteKey] : null;
+  const coche      = (cliente && cocheKey) ? cliente.coches?.[cocheKey] : null;
+
+  const vehiculoInfo = coche
+    ? [coche.matricula, coche.marca, coche.modelo, coche.color].filter(Boolean).join(' · ')
+    : null;
+
+  const infoBlock = (cliente || vehiculoInfo) ? `
+    <div class="factura-info-meta">
+      ${cliente ? `<span class="factura-info-titular">${esc(cliente.nombre)}</span>` : ''}
+      ${vehiculoInfo ? `<span class="factura-info-vehiculo">${esc(vehiculoInfo)}</span>` : ''}
+    </div>` : '';
+
   openModal(
     isEdit ? 'Editar factura' : 'Nueva factura',
     `<div class="form-grid">
@@ -228,6 +243,7 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
       <label>Fecha entrada<input id="m-fecha" type="date" value="${f.fecha || todayISO()}" /></label>
       <label>Fecha cierre<input id="m-fecha-cierre" type="date" value="${f.fechaCierre || ''}" /></label>
       <label class="full">Concepto *<input id="m-concepto" type="text" value="${esc(f.concepto)}" placeholder="Descripción del trabajo realizado" /></label>
+      ${infoBlock ? `<div class="full">${infoBlock}</div>` : ''}
       <label>Kilometraje<input id="m-kms" type="number" value="${f.kms || ''}" min="0" placeholder="Ej: 85000" /></label>
       <label>Estado
         <select id="m-estado">

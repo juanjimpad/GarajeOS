@@ -242,7 +242,7 @@ async function initApp() {
         const clienteKey = target.dataset.clienteKey;
         const cocheKey = target.dataset.cocheKey;
         const numero = generateFacturaNumber(state.clientes);
-        openFacturaModal(null, data => addFactura(uid, clienteKey, cocheKey, data), { numero });
+        openFacturaModal(null, data => addFactura(uid, clienteKey, cocheKey, data), { numero, clienteKey, cocheKey });
         break;
       }
 
@@ -251,7 +251,7 @@ async function initApp() {
         const cocheKey = target.dataset.cocheKey;
         const facturaKey = target.dataset.key;
         const factura = state.clientes[clienteKey]?.coches?.[cocheKey]?.facturas?.[facturaKey];
-        openFacturaModal(factura, data => updateFactura(uid, clienteKey, cocheKey, facturaKey, data));
+        openFacturaModal(factura, data => updateFactura(uid, clienteKey, cocheKey, facturaKey, data), { clienteKey, cocheKey });
         break;
       }
 
@@ -310,6 +310,8 @@ async function initApp() {
           numero,
           citaId: citaUuid || null,
           concepto: cita?.descripcion || '',
+          clienteKey,
+          cocheKey,
         });
         break;
       }
@@ -320,7 +322,7 @@ async function initApp() {
         const facturaKey = target.dataset.facturaKey;
         const factura    = state.clientes[clienteKey]?.coches?.[cocheKey]?.facturas?.[facturaKey];
         if (!factura) break;
-        openFacturaModal(factura, data => updateFactura(uid, clienteKey, cocheKey, facturaKey, data));
+        openFacturaModal(factura, data => updateFactura(uid, clienteKey, cocheKey, facturaKey, data), { clienteKey, cocheKey });
         break;
       }
 
