@@ -476,14 +476,24 @@ function setupStaticUI() {
   });
 
   // Search
-  el('search-clientes').addEventListener('input', e => {
-    state.searchClientes = e.target.value;
-    renderClientesList();
-  });
-  el('search-coches').addEventListener('input', e => {
-    state.searchCoches = e.target.value;
-    renderCochesList();
-  });
+  function bindSearch(inputId, stateProp, renderFn) {
+    const input = el(inputId);
+    const clearBtn = input.parentElement.querySelector('.search-clear');
+    input.addEventListener('input', e => {
+      state[stateProp] = e.target.value;
+      clearBtn.classList.toggle('hidden', !e.target.value);
+      renderFn();
+    });
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      state[stateProp] = '';
+      clearBtn.classList.add('hidden');
+      input.focus();
+      renderFn();
+    });
+  }
+  bindSearch('search-clientes', 'searchClientes', renderClientesList);
+  bindSearch('search-coches', 'searchCoches', renderCochesList);
 
   // Service Worker
   if ('serviceWorker' in navigator) {
