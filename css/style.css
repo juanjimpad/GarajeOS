@@ -1265,5 +1265,185 @@ label {
   .user-name { display: none; }
   .footer-copy { display: none; }
 
-
+  .ag-day-num { font-size: 12px; }
+  .ag-toolbar { padding: 10px 12px; gap: 6px; }
+  .ag-title { font-size: 15px; }
 }
+
+/* ── Agenda / Calendario ─────────────────────────────────── */
+
+#panel-calendario {
+  background: var(--bg);
+}
+
+.ag-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  flex-shrink: 0;
+}
+
+.ag-title {
+  font-size: 17px;
+  font-weight: 700;
+  flex: 1;
+  text-align: center;
+}
+
+.ag-nav {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.ag-nav:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+.ag-day-names {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sidebar);
+  flex-shrink: 0;
+}
+
+.ag-day-names span {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ag-calendar {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.ag-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+
+.ag-day {
+  padding: 4px 4px 6px;
+  min-height: 72px;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.ag-day:last-child { border-right: none; }
+.ag-day:hover { background: var(--accent-light); }
+
+.ag-day-num {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+
+.ag-other .ag-day-num { color: var(--text-muted); }
+
+.ag-today .ag-day-num {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.ag-events {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 2px 0 4px;
+  gap: 2px 0;
+  min-height: 2px;
+}
+
+.ag-event {
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 0 1px;
+  min-height: 20px;
+  transition: opacity .12s;
+}
+
+.ag-event:hover { opacity: 0.85; }
+
+.ag-event-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Bordes redondeados según continuación */
+.ag-event:not(.ag-open-left):not(.ag-ongoing)  { border-radius: 3px 0 0 3px; }
+.ag-event:not(.ag-open-right)                   { border-radius: 0 3px 3px 0; }
+.ag-event:not(.ag-open-left):not(.ag-open-right):not(.ag-ongoing) { border-radius: 3px; }
+.ag-open-left  { border-radius: 0 3px 3px 0; margin-left: 0; }
+.ag-open-right { border-radius: 3px 0 0 3px; margin-right: 0; }
+.ag-ongoing    { border-radius: 3px 0 0 3px; margin-right: 0; }
+
+/* Colores por estado */
+.cita-pendiente  { background: var(--accent); }
+.cita-en-curso   { background: #f59e0b; }
+.cita-completada { background: #10b981; }
+.cita-cancelada  { background: var(--text-muted); opacity: 0.7; }
+
+/* Eventos en curso pulsan suavemente */
+.ag-ongoing {
+  animation: ag-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ag-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+/* Chips dentro de cada celda del día */
+.ag-chip {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 3px;
+  padding: 2px 5px;
+  margin: 2px 0 0;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition: opacity .12s;
+}
+.ag-chip:hover { opacity: 0.8; }
+.ag-chip-cont { opacity: 0.6; font-weight: 400; }

@@ -39,6 +39,25 @@ export function deleteCoche(uid, clienteKey, cocheKey) {
   return remove(userRef(uid, 'clientes', clienteKey, 'coches', cocheKey));
 }
 
+// ── Citas ────────────────────────────────────────────────
+export function subscribeCitas(uid, callback) {
+  const r = userRef(uid, 'citas');
+  onValue(r, snap => callback(snap.val() || {}));
+  return () => off(r);
+}
+
+export function addCita(uid, data) {
+  return push(userRef(uid, 'citas'), data);
+}
+
+export function updateCita(uid, key, data) {
+  return set(userRef(uid, 'citas', key), data);
+}
+
+export function deleteCita(uid, key) {
+  return remove(userRef(uid, 'citas', key));
+}
+
 // ── Facturas ─────────────────────────────────────────────
 export function addFactura(uid, clienteKey, cocheKey, data) {
   return push(userRef(uid, 'clientes', clienteKey, 'coches', cocheKey, 'facturas'), data);

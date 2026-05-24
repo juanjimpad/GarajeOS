@@ -2,7 +2,8 @@
 import { initTheme, setTheme } from './theme.js';
 import { state } from './state.js';
 import { renderClientesList, renderCochesList, renderClienteDetail, renderCocheDetail, renderFacturasList, clearDetail } from './render.js';
-import { openClienteModal, openCocheModal, openFacturaModal, openConfirm, closeModal } from './modals.js';
+import { openClienteModal, openCocheModal, openFacturaModal, openCitaModal, openConfirm, closeModal } from './modals.js';
+import { renderAgenda } from './agenda.js';
 import { el, generateFacturaNumber } from './utils.js';
 
 initTheme();
@@ -67,11 +68,13 @@ async function initApp() {
     subscribeClientes, addCliente, updateCliente, deleteCliente,
     addCoche, updateCoche, deleteCoche,
     addFactura, updateFactura, deleteFactura,
+    subscribeCitas, addCita, updateCita, deleteCita,
   } = fbDb;
 
   const { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } = fbAuth;
 
   let unsubClientes = null;
+  let unsubCitas = null;
 
   // ── Auth state ────────────────────────────────────────────
 
@@ -87,10 +90,13 @@ async function initApp() {
       el('auth-screen').classList.remove('hidden');
       el('main-app').classList.add('hidden');
       if (unsubClientes) { unsubClientes(); unsubClientes = null; }
+      if (unsubCitas)    { unsubCitas();    unsubCitas    = null; }
     }
   });
 
   function startListeners(uid) {
+    state.addCliente = data => addCliente(uid, data);
+    state.addCoche   = (clienteKey, data) => addCoche(uid, clienteKey, data);
     if (unsubClientes) unsubClientes();
     unsubClientes = subscribeClientes(uid, clientes => {
       state.clientes = clientes;
@@ -100,6 +106,12 @@ async function initApp() {
       const current = state.viewHistory[state.viewHistory.length - 1];
       if (current === 'cliente') renderClienteDetail(state.selectedClienteKey);
       else if (current === 'coche') renderCocheDetail(state.selectedClienteKey, state.selectedCocheKey);
+    });
+
+    if (unsubCitas) unsubCitas();
+    unsubCitas = subscribeCitas(uid, citas => {
+      state.citas = citas;
+      if (state.activeTab === 'calendario') renderAgenda();
     });
   }
 
@@ -236,6 +248,90 @@ async function initApp() {
         );
         break;
       }
+
+      case 'add-cita':
+      case 'new-cita-day': {
+        const defaultDate = target.dataset.date || null;
+        openCitaModal(defaultDate ? { fechaInicio: defaultDate } : null, data => {
+          data.uuid = crypto.randomUUID();
+          return addCita(uid, data);
+        });
+        break;
+      }
+
+      case 'edit-cita': {
+        const key = target.dataset.key;
+        const cita = state.citas[key];
+        if (!cita) break;
+        openCitaModal(
+          cita,
+          data => {
+            data.uuid = cita.uuid || crypto.randomUUID();
+            return updateCita(uid, key, data);
+          },
+          () => openConfirm('¿Eliminar esta cita?', () => deleteCita(uid, key)),
+          key
+        );
+        break;
+      }
+
+      case 'nueva-factura-cita': {
+        const clienteKey = target.dataset.clienteKey;
+        const cocheKey   = target.dataset.cocheKey;
+        const citaKey    = target.dataset.citaKey;
+        const cita       = citaKey ? state.citas[citaKey] : null;
+        // Garantizar que la cita tiene uuid antes de vincularla a la factura
+        let citaUuid = cita?.uuid;
+        if (!citaUuid && citaKey && cita) {
+          citaUuid = crypto.randomUUID();
+          const citaActualizada = { ...cita, uuid: citaUuid };
+          await updateCita(uid, citaKey, citaActualizada);
+          state.citas[citaKey] = citaActualizada;
+        }
+        const numero = generateFacturaNumber(state.clientes);
+        openFacturaModal(null, data => addFactura(uid, clienteKey, cocheKey, data), {
+          numero,
+          citaId: citaUuid || null,
+          concepto: cita?.descripcion || '',
+        });
+        break;
+      }
+
+      case 'ver-factura-cita': {
+        const clienteKey = target.dataset.clienteKey;
+        const cocheKey   = target.dataset.cocheKey;
+        const facturaKey = target.dataset.facturaKey;
+        const factura    = state.clientes[clienteKey]?.coches?.[cocheKey]?.facturas?.[facturaKey];
+        if (!factura) break;
+        openFacturaModal(factura, data => updateFactura(uid, clienteKey, cocheKey, facturaKey, data));
+        break;
+      }
+
+      case 'ver-vehiculo': {
+        const clienteKey = target.dataset.clienteKey;
+        const cocheKey   = target.dataset.cocheKey;
+        closeModal();
+        state.selectedClienteKey = clienteKey;
+        state.selectedCocheKey   = cocheKey;
+        const cur = state.viewHistory[state.viewHistory.length - 1];
+        if (cur !== 'cliente') state.viewHistory = ['list'];
+        navigate('coche');
+        break;
+      }
+
+      case 'cal-prev': {
+        state.calendarMonth--;
+        if (state.calendarMonth < 0) { state.calendarMonth = 11; state.calendarYear--; }
+        renderAgenda();
+        break;
+      }
+
+      case 'cal-next': {
+        state.calendarMonth++;
+        if (state.calendarMonth > 11) { state.calendarMonth = 0; state.calendarYear++; }
+        renderAgenda();
+        break;
+      }
     }
   });
 
@@ -296,6 +392,7 @@ function setupStaticUI() {
       btn.classList.add('active');
       state.activeTab = btn.dataset.tab;
       el(`panel-${btn.dataset.tab}`).classList.add('active');
+      if (btn.dataset.tab === 'calendario') renderAgenda();
     });
   });
 

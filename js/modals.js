@@ -1,5 +1,6 @@
 import { el, todayISO, escapeHTML as esc } from './utils.js';
 import { CAR_BRANDS, BRAND_NAMES, MOTO_BRANDS, MOTO_BRAND_NAMES, VEHICLE_TYPES, FUEL_TYPES, FACTURA_ESTADOS, PAYMENT_METHODS, PIEZAS_COMUNES, IVA } from './config.js';
+import { state } from './state.js';
 
 function openModal(title, bodyHTML, onConfirm) {
   el('modal-title').textContent = title;
@@ -224,7 +225,8 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
       <label>Número de factura
         <input id="m-numero" type="text" value="${esc(f.numero || '')}" readonly class="input-readonly" />
       </label>
-      <label>Fecha<input id="m-fecha" type="date" value="${f.fecha || todayISO()}" /></label>
+      <label>Fecha entrada<input id="m-fecha" type="date" value="${f.fecha || todayISO()}" /></label>
+      <label>Fecha cierre<input id="m-fecha-cierre" type="date" value="${f.fechaCierre || ''}" /></label>
       <label class="full">Concepto *<input id="m-concepto" type="text" value="${esc(f.concepto)}" placeholder="Descripción del trabajo realizado" /></label>
       <label>Kilometraje<input id="m-kms" type="number" value="${f.kms || ''}" min="0" placeholder="Ej: 85000" /></label>
       <label>Estado
@@ -296,6 +298,7 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
       return onSave({
         numero: el('m-numero').value.trim(),
         fecha: el('m-fecha').value,
+        fechaCierre: el('m-fecha-cierre').value || null,
         concepto,
         manoDeObra,
         piezas: piezasData,
@@ -306,6 +309,7 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
         estado: el('m-estado').value,
         metodoPago,
         descripcion: el('m-descripcion').value.trim(),
+        citaId: f.citaId || null,
       });
     }
   );
@@ -379,6 +383,313 @@ function actualizarTotal() {
   const fmt = v => v.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
   if (el('m-subtotal')) el('m-subtotal').textContent = fmt(subtotal);
   if (el('m-total-display')) el('m-total-display').textContent = fmt(total);
+}
+
+// ── Cita modal ────────────────────────────────────────────
+
+function getVehicleLabel(clienteKey, cocheKey) {
+  if (!clienteKey || !cocheKey) return '';
+  const cliente = state.clientes[clienteKey];
+  const coche = cliente?.coches?.[cocheKey];
+  if (!coche || !cliente) return '';
+  return [coche.matricula, coche.marca, coche.modelo, '·', cliente.nombre].filter(Boolean).join(' ');
+}
+
+function findFacturaByCitaId(citaId) {
+  if (!citaId) return null;
+  for (const [clienteKey, cliente] of Object.entries(state.clientes || {})) {
+    for (const [cocheKey, coche] of Object.entries(cliente.coches || {})) {
+      for (const [facturaKey, factura] of Object.entries(coche.facturas || {})) {
+        if (factura.citaId === citaId) return { clienteKey, cocheKey, facturaKey, factura };
+      }
+    }
+  }
+  return null;
+}
+
+export function openCitaModal(existing, onSave, onDelete, citaKey = null) {
+  const isEdit = !!existing;
+  const c = existing || {};
+  const hasTemp = !!c.vehiculoTemp;
+  const tipoV = (isEdit && !hasTemp && c.clienteKey) ? 'existente' : 'nuevo';
+
+  const ESTADOS_CITA = ['Pendiente', 'En curso', 'Completada', 'Cancelada'];
+  const initClienteKey = c.clienteKey || '';
+  const initCocheKey   = c.cocheKey   || '';
+  const linkedFactura  = isEdit ? findFacturaByCitaId(c.uuid) : null;
+  const vehiculoLocked = !!linkedFactura;
+
+  // Botones de acceso rápido (solo en edición con vehículo vinculado)
+  const accesoRapidoHtml = isEdit && initClienteKey && initCocheKey ? `
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      <button type="button" class="btn btn-sm btn-secondary"
+        data-action="ver-vehiculo"
+        data-cliente-key="${initClienteKey}"
+        data-coche-key="${initCocheKey}">
+        Ver ficha →
+      </button>
+      ${linkedFactura
+        ? `<button type="button" class="btn btn-sm btn-secondary"
+            data-action="ver-factura-cita"
+            data-cliente-key="${linkedFactura.clienteKey}"
+            data-coche-key="${linkedFactura.cocheKey}"
+            data-factura-key="${linkedFactura.facturaKey}">
+            Ver factura →
+          </button>`
+        : `<button type="button" class="btn btn-sm btn-primary"
+            data-action="nueva-factura-cita"
+            data-cliente-key="${initClienteKey}"
+            data-coche-key="${initCocheKey}"
+            data-cita-key="${citaKey || ''}">
+            + Nueva factura
+          </button>`
+      }
+    </div>` : '';
+
+  openModal(
+    isEdit ? 'Editar cita' : 'Nueva cita',
+    `<div class="form-grid">
+      <label>Fecha entrada *<input id="m-ci-inicio" type="date" value="${c.fechaInicio || todayISO()}" /></label>
+      <label>Fecha salida<input id="m-ci-fin" type="date" value="${c.fechaFin || ''}" /></label>
+      <label class="full">Descripción<input id="m-ci-desc" type="text" value="${esc(c.descripcion || '')}" placeholder="Revisión, cambio aceite, frenos..." /></label>
+      <label>Estado
+        <select id="m-ci-estado">
+          ${ESTADOS_CITA.map(e => `<option value="${e}" ${(c.estado || 'Pendiente') === e ? 'selected' : ''}>${e}</option>`).join('')}
+        </select>
+      </label>
+    </div>
+
+    <div style="margin-top:14px">
+      ${!vehiculoLocked ? `
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <label style="flex:1;margin:0">Cliente
+          <div class="ac-wrap">
+            <input id="m-ci-cliente-search" type="text"
+              value="${initClienteKey ? esc(state.clientes[initClienteKey]?.nombre || '') : ''}"
+              placeholder="Buscar cliente..." autocomplete="off" />
+          </div>
+          <input type="hidden" id="m-ci-cliente-key" value="${initClienteKey}" />
+        </label>
+        <button type="button" class="btn btn-sm btn-secondary" id="m-ci-btn-add-cliente" style="flex-shrink:0;margin-bottom:1px">+ Cliente</button>
+      </div>` : `<input type="hidden" id="m-ci-cliente-key" value="${initClienteKey}" />`}
+      <div id="m-ci-cliente-card" style="margin-top:6px"></div>
+
+      <div id="m-ci-new-cliente" style="display:none;margin-top:8px;padding:10px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border)">
+        <div class="form-grid">
+          <label>Nombre *<input id="m-ci-cl-nombre" type="text" placeholder="Nombre del cliente" /></label>
+          <label>Teléfono<input id="m-ci-cl-tel" type="tel" placeholder="612 345 678" /></label>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button type="button" class="btn btn-sm btn-primary" id="m-ci-confirmar-cliente">Añadir</button>
+          <button type="button" class="btn btn-sm btn-secondary" id="m-ci-cancelar-cliente">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="m-ci-vehiculos-section" style="margin-top:12px${!initClienteKey ? ';display:none' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px">Vehículo</span>
+        ${!vehiculoLocked ? `<button type="button" class="btn btn-sm btn-secondary" id="m-ci-btn-add-coche">+ Vehículo</button>` : ''}
+      </div>
+      <div id="m-ci-vehiculos-list"></div>
+      <input type="hidden" id="m-ci-coche-key" value="${initCocheKey}" />
+
+      <div id="m-ci-new-coche" style="display:none;margin-top:8px;padding:10px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border)">
+        <div class="form-grid">
+          <label>Tipo
+            <select id="m-ci-v-tipo">
+              ${VEHICLE_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+            </select>
+          </label>
+          <label>Matrícula<input id="m-ci-v-mat" type="text" placeholder="1234 ABC" style="text-transform:uppercase" /></label>
+          <label>Marca<div class="ac-wrap"><input id="m-ci-v-marca" type="text" placeholder="Marca..." autocomplete="off" /></div></label>
+          <label>Modelo<div class="ac-wrap"><input id="m-ci-v-modelo" type="text" placeholder="Modelo..." autocomplete="off" /></div></label>
+          <label>Año<input id="m-ci-v-año" type="number" placeholder="${new Date().getFullYear()}" min="1940" max="${new Date().getFullYear() + 1}" /></label>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button type="button" class="btn btn-sm btn-primary" id="m-ci-confirmar-coche">Añadir</button>
+          <button type="button" class="btn btn-sm btn-secondary" id="m-ci-cancelar-coche">Cancelar</button>
+        </div>
+      </div>
+
+      ${accesoRapidoHtml}
+    </div>
+
+    <div class="modal-footer" style="margin-top:16px">
+      ${isEdit ? `<button type="button" class="btn btn-danger" id="m-ci-delete">Eliminar</button>` : ''}
+      <button class="btn btn-secondary" data-modal-cancel>Cancelar</button>
+      <button class="btn btn-primary" data-modal-confirm>Guardar</button>
+    </div>`,
+    () => {
+      const fechaInicio = el('m-ci-inicio').value;
+      if (!fechaInicio) { alert('La fecha de entrada es obligatoria'); return Promise.resolve(); }
+      return onSave({
+        fechaInicio,
+        fechaFin:    el('m-ci-fin').value || null,
+        descripcion: el('m-ci-desc').value.trim(),
+        estado:      el('m-ci-estado').value,
+        clienteKey:  el('m-ci-cliente-key').value || null,
+        cocheKey:    el('m-ci-coche-key').value   || null,
+      });
+    }
+  );
+
+  // Tarjeta del cliente seleccionado
+  function renderClienteCard(clienteKey) {
+    const card = el('m-ci-cliente-card');
+    if (!card) return;
+    if (!clienteKey) { card.innerHTML = ''; return; }
+    const cliente = state.clientes[clienteKey];
+    if (!cliente) { card.innerHTML = ''; return; }
+    const info = [cliente.telefono, cliente.email].filter(Boolean).join(' · ');
+    card.innerHTML = `<div style="padding:8px 10px;border-radius:6px;margin-bottom:2px;
+        border:1px solid var(--border);background:var(--bg-secondary);
+        border-left:3px solid var(--accent);cursor:default">
+      <strong style="font-size:13px">${esc(cliente.nombre || '—')}</strong>
+      ${info ? `<span style="font-size:12px;color:var(--text-muted);margin-left:8px">${esc(info)}</span>` : ''}
+    </div>`;
+  }
+
+  // Renderiza las tarjetas de vehículos del cliente seleccionado
+  function renderVehiculos(clienteKey, selectedCocheKey) {
+    const section = el('m-ci-vehiculos-section');
+    const list    = el('m-ci-vehiculos-list');
+    if (!clienteKey) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    const coches  = state.clientes[clienteKey]?.coches || {};
+    const allEntries = Object.entries(coches);
+    const entries = vehiculoLocked
+      ? allEntries.filter(([key]) => key === selectedCocheKey)
+      : allEntries;
+    if (!entries.length) {
+      list.innerHTML = `<p style="font-size:12px;color:var(--text-muted);margin:4px 0 8px">Sin vehículos registrados</p>`;
+      return;
+    }
+    list.innerHTML = entries.map(([key, coche]) => {
+      const sel = key === selectedCocheKey;
+      return `<div class="ci-coche-card${sel ? ' selected' : ''}" data-coche-key="${key}"
+        style="padding:8px 10px;border-radius:6px;margin-bottom:6px;
+          border:1px solid var(--border);
+          background:var(--bg-secondary);
+          border-left:${sel ? '3px solid var(--accent)' : '1px solid var(--border)'};
+          cursor:${sel || vehiculoLocked ? 'default' : 'pointer'}">
+        <strong style="font-size:13px">${esc(coche.matricula || '—')}</strong>
+        <span style="font-size:12px;color:var(--text-muted);margin-left:8px">${esc([coche.marca, coche.modelo, coche.año].filter(Boolean).join(' '))}</span>
+      </div>`;
+    }).join('');
+    if (!vehiculoLocked) {
+      list.querySelectorAll('.ci-coche-card').forEach(card => {
+        card.addEventListener('click', () => {
+          el('m-ci-coche-key').value = card.dataset.cocheKey;
+          renderVehiculos(clienteKey, card.dataset.cocheKey);
+        });
+      });
+    }
+  }
+
+  // Render inicial
+  renderClienteCard(initClienteKey);
+  renderVehiculos(initClienteKey, initCocheKey);
+
+  if (!vehiculoLocked) {
+    // Autocomplete cliente
+    const clienteLabels = Object.entries(state.clientes || {}).map(([, cl]) => cl.nombre || '').filter(Boolean);
+    setupCombobox('m-ci-cliente-search', clienteLabels);
+    el('m-ci-cliente-search')?.addEventListener('input', () => {
+      const val   = el('m-ci-cliente-search').value;
+      const found = Object.entries(state.clientes || {}).find(([, cl]) => cl.nombre === val);
+      const key   = found?.[0] || '';
+      el('m-ci-cliente-key').value = key;
+      el('m-ci-coche-key').value   = '';
+      renderClienteCard(key);
+      renderVehiculos(key, '');
+    });
+
+    // + Nuevo cliente
+    el('m-ci-btn-add-cliente')?.addEventListener('click', () => {
+      el('m-ci-new-cliente').style.display = '';
+      el('m-ci-cl-nombre').focus();
+    });
+    el('m-ci-cancelar-cliente')?.addEventListener('click', () => {
+      el('m-ci-new-cliente').style.display = 'none';
+    });
+    el('m-ci-confirmar-cliente')?.addEventListener('click', async () => {
+      const nombre = el('m-ci-cl-nombre').value.trim();
+      if (!nombre) { el('m-ci-cl-nombre').focus(); return; }
+      const ref = await state.addCliente?.({ nombre, telefono: el('m-ci-cl-tel').value.trim() || null });
+      if (!ref) return;
+      el('m-ci-cliente-key').value    = ref.key;
+      el('m-ci-cliente-search').value = nombre;
+      el('m-ci-new-cliente').style.display = 'none';
+      el('m-ci-coche-key').value = '';
+      renderClienteCard(ref.key);
+      renderVehiculos(ref.key, '');
+    });
+
+    // + Nuevo vehículo
+    el('m-ci-btn-add-coche')?.addEventListener('click', () => {
+      el('m-ci-new-coche').style.display = '';
+      el('m-ci-v-mat').focus();
+    });
+    el('m-ci-cancelar-coche')?.addEventListener('click', () => {
+      el('m-ci-new-coche').style.display = 'none';
+    });
+
+    // Comboboxes marca/modelo del formulario inline
+    const getVBrands = () => el('m-ci-v-tipo')?.value === 'Moto' ? MOTO_BRANDS : CAR_BRANDS;
+    const getVBrandNames = () => el('m-ci-v-tipo')?.value === 'Moto' ? MOTO_BRAND_NAMES : BRAND_NAMES;
+    setupCombobox('m-ci-v-marca', BRAND_NAMES);
+    setupCombobox('m-ci-v-modelo', []);
+    el('m-ci-v-tipo')?.addEventListener('change', () => {
+      el('m-ci-v-marca').value = '';
+      el('m-ci-v-modelo').value = '';
+      el('m-ci-v-marca').dataset.options = JSON.stringify(getVBrandNames());
+      el('m-ci-v-modelo').dataset.options = JSON.stringify([]);
+    });
+    el('m-ci-v-marca')?.addEventListener('input', () => {
+      const models = (getVBrands()[el('m-ci-v-marca').value] || []).filter(m => m !== 'Desconocido');
+      el('m-ci-v-modelo').dataset.options = JSON.stringify([...models, 'Desconocido']);
+      el('m-ci-v-modelo').value = '';
+    });
+
+    el('m-ci-confirmar-coche')?.addEventListener('click', async () => {
+      const clienteKey = el('m-ci-cliente-key').value;
+      if (!clienteKey) { alert('Selecciona un cliente primero'); return; }
+      const cocheData = {
+        tipo:      el('m-ci-v-tipo').value,
+        matricula: el('m-ci-v-mat').value.trim().toUpperCase() || null,
+        marca:     el('m-ci-v-marca').value.trim()  || null,
+        modelo:    el('m-ci-v-modelo').value.trim() || null,
+        año:       parseInt(el('m-ci-v-año').value) || null,
+      };
+      const ref = await state.addCoche?.(clienteKey, cocheData);
+      if (!ref) return;
+      // Inyectar en state para que renderVehiculos lo muestre sin esperar a Firebase
+      if (state.clientes[clienteKey]) {
+        state.clientes[clienteKey].coches = state.clientes[clienteKey].coches || {};
+        state.clientes[clienteKey].coches[ref.key] = cocheData;
+      }
+      el('m-ci-new-coche').style.display = 'none';
+      el('m-ci-coche-key').value = ref.key;
+      renderVehiculos(clienteKey, ref.key);
+    });
+  }
+
+  // Estado → fecha fin automática
+  el('m-ci-estado')?.addEventListener('change', () => {
+    const estado = el('m-ci-estado').value;
+    const fin    = el('m-ci-fin');
+    if (estado === 'Completada' && !fin.value) fin.value = todayISO();
+    else if (estado === 'En curso') fin.value = '';
+  });
+
+  // Botón eliminar
+  if (isEdit && onDelete) {
+    el('m-ci-delete')?.addEventListener('click', () => {
+      closeModal();
+      onDelete();
+    }, { once: true });
+  }
 }
 
 // ── Confirm dialog ────────────────────────────────────────
