@@ -777,15 +777,16 @@ body {
 .factura-info-meta {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 8px 10px;
+  gap: 3px;
+  padding: 12px 20px;
   background: var(--bg-secondary);
-  border-radius: 8px;
-  border-left: 3px solid var(--accent);
+  border-bottom: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  margin: -20px -20px 16px -20px;
 }
 .factura-info-titular {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--text);
 }
 .factura-info-vehiculo {

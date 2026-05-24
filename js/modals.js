@@ -236,14 +236,14 @@ export function openFacturaModal(existing, onSave, defaults = {}) {
 
   openModal(
     isEdit ? 'Editar factura' : 'Nueva factura',
-    `<div class="form-grid">
+    `${infoBlock}
+    <div class="form-grid">
       <label>Número de factura
         <input id="m-numero" type="text" value="${esc(f.numero || '')}" readonly class="input-readonly" />
       </label>
       <label>Fecha entrada<input id="m-fecha" type="date" value="${f.fecha || todayISO()}" /></label>
       <label>Fecha cierre<input id="m-fecha-cierre" type="date" value="${f.fechaCierre || ''}" /></label>
       <label class="full">Concepto *<input id="m-concepto" type="text" value="${esc(f.concepto)}" placeholder="Descripción del trabajo realizado" /></label>
-      ${infoBlock ? `<div class="full">${infoBlock}</div>` : ''}
       <label>Kilometraje<input id="m-kms" type="number" value="${f.kms || ''}" min="0" placeholder="Ej: 85000" /></label>
       <label>Estado
         <select id="m-estado">
