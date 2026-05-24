@@ -5,6 +5,7 @@ import { renderClientesList, renderCochesList, renderClienteDetail, renderCocheD
 import { openClienteModal, openCocheModal, openFacturaModal, openCitaModal, openConfirm, closeModal } from './modals.js';
 import { renderAgenda } from './agenda.js';
 import { el, generateFacturaNumber } from './utils.js';
+import { generateICS } from './ics.js';
 
 initTheme();
 setupStaticUI();
@@ -69,12 +70,32 @@ async function initApp() {
     addCoche, updateCoche, deleteCoche,
     addFactura, updateFactura, deleteFactura,
     subscribeCitas, addCita, updateCita, deleteCita,
+    getOrCreateCalendarSecret, resetCalendarSecret, updateCalendarExport,
   } = fbDb;
 
   const { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } = fbAuth;
 
   let unsubClientes = null;
   let unsubCitas = null;
+  let calendarSecret = null;
+
+  async function syncCalendar(uid) {
+    if (!calendarSecret) calendarSecret = await getOrCreateCalendarSecret(uid);
+    const ics = generateICS(state.citas, state.clientes);
+    await updateCalendarExport(calendarSecret, ics);
+    state.calendarSecret = calendarSecret;
+    renderCalendarSecretUI();
+  }
+
+  function renderCalendarSecretUI() {
+    const input = document.getElementById('cal-subscription-url');
+    if (!input || !calendarSecret) return;
+    const url = `${location.origin}/calendar/${calendarSecret}`;
+    input.value = url;
+    input.placeholder = '';
+    const copyBtn = input.closest('.ag-cal-sub-row')?.querySelector('[data-action="copy-cal-url"]');
+    if (copyBtn) copyBtn.disabled = false;
+  }
 
   // ── Auth state ────────────────────────────────────────────
 
@@ -108,12 +129,14 @@ async function initApp() {
       if (current === 'cliente') renderClienteDetail(state.selectedClienteKey);
       else if (current === 'coche') renderCocheDetail(state.selectedClienteKey, state.selectedCocheKey);
       if (state.activeTab === 'calendario') renderAgenda();
+      syncCalendar(uid).catch(() => {});
     });
 
     if (unsubCitas) unsubCitas();
     unsubCitas = subscribeCitas(uid, citas => {
       state.citas = citas;
       if (state.activeTab === 'calendario') renderAgenda();
+      syncCalendar(uid).catch(() => {});
     });
   }
 
@@ -318,6 +341,26 @@ async function initApp() {
         const cur = state.viewHistory[state.viewHistory.length - 1];
         if (cur !== 'cliente') state.viewHistory = ['list'];
         navigate('coche');
+        break;
+      }
+
+      case 'copy-cal-url': {
+        const input = document.getElementById('cal-subscription-url');
+        if (input?.value) {
+          navigator.clipboard.writeText(input.value).then(() => {
+            target.textContent = '✓ Copiado';
+            setTimeout(() => target.textContent = 'Copiar', 2000);
+          });
+        }
+        break;
+      }
+
+      case 'reset-cal-secret': {
+        if (!confirm('¿Regenerar el enlace? El enlace anterior dejará de funcionar.')) break;
+        calendarSecret = await resetCalendarSecret(uid);
+        state.calendarSecret = calendarSecret;
+        await syncCalendar(uid);
+        renderCalendarSecretUI();
         break;
       }
 

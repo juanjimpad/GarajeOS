@@ -10,4 +10,5 @@ export const state = {
   viewHistory: ['list'],  // 'list' | 'cliente' | 'coche'
   searchClientes: '',
   searchCoches: '',
+  calendarSecret: null,
 };

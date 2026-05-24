@@ -113,6 +113,9 @@ export function renderAgenda() {
     </div>`
   ).join('');
 
+  const secret = state.calendarSecret;
+  const calUrl = secret ? `${location.origin}/calendar/${secret}` : '';
+
   panel.innerHTML = `
     <div class="ag-toolbar">
       <button class="ag-nav" data-action="cal-prev">‹</button>
@@ -124,5 +127,14 @@ export function renderAgenda() {
       ${DAY_NAMES.map(d => `<span>${d}</span>`).join('')}
     </div>
     <div class="ag-calendar">${weeksHtml}</div>
+    <div class="ag-cal-sub">
+      <span class="ag-cal-sub-label">Suscripción calendario</span>
+      <div class="ag-cal-sub-row">
+        <input id="cal-subscription-url" class="ag-cal-sub-input" type="text" readonly
+          value="${calUrl}" placeholder="${secret ? '' : 'Cargando…'}" />
+        <button class="btn btn-sm" data-action="copy-cal-url" ${!calUrl ? 'disabled' : ''}>Copiar</button>
+        <button class="btn btn-sm btn-danger-outline" data-action="reset-cal-secret" title="Regenerar enlace">↺</button>
+      </div>
+    </div>
   `;
 }

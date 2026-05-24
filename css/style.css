@@ -1450,3 +1450,45 @@ label {
 }
 .ag-chip:hover { opacity: 0.8; }
 .ag-chip-cont { opacity: 0.6; font-weight: 400; }
+
+/* Calendar subscription */
+.ag-cal-sub {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ag-cal-sub-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.ag-cal-sub-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.ag-cal-sub-input {
+  flex: 1;
+  font-size: 11px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  min-width: 0;
+  cursor: text;
+}
+.btn-danger-outline {
+  border-color: var(--border);
+  color: var(--text-muted);
+  background: transparent;
+}
+.btn-danger-outline:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: transparent;
+}

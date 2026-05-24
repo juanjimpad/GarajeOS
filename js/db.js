@@ -1,6 +1,6 @@
 import { db } from './firebase.js';
 import {
-  ref, set, push, update, remove, onValue, off
+  ref, set, push, update, remove, onValue, off, get
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 function userRef(uid, ...paths) {
@@ -56,6 +56,25 @@ export function updateCita(uid, key, data) {
 
 export function deleteCita(uid, key) {
   return remove(userRef(uid, 'citas', key));
+}
+
+// ── Calendar export ──────────────────────────────────────
+export async function getOrCreateCalendarSecret(uid) {
+  const r = userRef(uid, 'calendarSecret');
+  const snap = await get(r);
+  if (snap.exists()) return snap.val();
+  const secret = crypto.randomUUID();
+  await set(r, secret);
+  return secret;
+}
+
+export function resetCalendarSecret(uid) {
+  const secret = crypto.randomUUID();
+  return set(userRef(uid, 'calendarSecret'), secret).then(() => secret);
+}
+
+export function updateCalendarExport(secret, icsContent) {
+  return set(ref(db, `calendarExports/${secret}`), icsContent);
 }
 
 // ── Facturas ─────────────────────────────────────────────
