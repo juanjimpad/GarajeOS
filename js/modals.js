@@ -148,7 +148,7 @@ export function openCocheModal(existing, onSave) {
           ${VEHICLE_TYPES.map(t => `<option value="${t}" ${t === tipo ? 'selected' : ''}>${t === 'Moto' ? '🏍️' : '🚗'} ${t}</option>`).join('')}
         </select>
       </label>
-      <label>Matrícula *<input id="m-matricula" type="text" value="${esc(c.matricula)}" placeholder="Ej: 1234 ABC" style="text-transform:uppercase" /></label>
+      <label>Matrícula<input id="m-matricula" type="text" value="${esc(c.matricula)}" placeholder="Ej: 1234 ABC" style="text-transform:uppercase" /></label>
       <label>Marca *<div class="ac-wrap"><input id="m-marca" type="text" value="${esc(c.marca)}" placeholder="Buscar marca..." autocomplete="off" /></div></label>
       <label>Modelo<div class="ac-wrap"><input id="m-modelo" type="text" value="${esc(c.modelo)}" placeholder="Buscar modelo..." autocomplete="off" /></div></label>
       <label>Año<input id="m-año" type="number" value="${c.año || ''}" min="1940" max="${new Date().getFullYear() + 1}" placeholder="Ej: 2018" /></label>
@@ -170,14 +170,14 @@ export function openCocheModal(existing, onSave) {
     () => {
       const matricula = el('m-matricula').value.trim().toUpperCase();
       const marca = el('m-marca').value;
-      if (!matricula || !marca) { alert('Matrícula y marca son obligatorias'); return Promise.resolve(); }
+      if (!marca) { alert('La marca es obligatoria'); return Promise.resolve(); }
       const kmsEl = el('m-kms');
       const kms = kmsEl ? parseInt(kmsEl.value, 10) : NaN;
       return onSave({
         tipo: el('m-tipo').value,
         matricula,
         marca,
-        modelo: el('m-modelo').value,
+        modelo: el('m-modelo').value.trim() || 'Desconocido',
         año: parseInt(el('m-año').value, 10) || null,
         color: el('m-color').value.trim(),
         combustible: el('m-combustible').value,
@@ -417,6 +417,7 @@ export function openCitaModal(existing, onSave, onDelete, citaKey = null) {
   const initClienteKey = c.clienteKey || '';
   const initCocheKey   = c.cocheKey   || '';
   const linkedFactura  = isEdit ? findFacturaByCitaId(c.uuid) : null;
+  const facturaPagada  = linkedFactura?.factura?.estado === 'Pagada';
   const vehiculoLocked = !!linkedFactura;
 
   // Botones de acceso rápido (solo en edición con vehículo vinculado)
@@ -448,12 +449,18 @@ export function openCitaModal(existing, onSave, onDelete, citaKey = null) {
 
   openModal(
     isEdit ? 'Editar cita' : 'Nueva cita',
-    `<div class="form-grid">
-      <label>Fecha entrada *<input id="m-ci-inicio" type="date" value="${c.fechaInicio || todayISO()}" /></label>
-      <label>Fecha salida<input id="m-ci-fin" type="date" value="${c.fechaFin || ''}" /></label>
-      <label class="full">Descripción<input id="m-ci-desc" type="text" value="${esc(c.descripcion || '')}" placeholder="Revisión, cambio aceite, frenos..." /></label>
+    `${facturaPagada ? `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:14px;
+        background:#d1fae5;color:#065f46;border-radius:8px;border:1px solid #6ee7b7;font-size:13px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Factura cerrada y pagada — esta cita es de solo lectura
+    </div>` : ''}
+    <div class="form-grid">
+      <label>Fecha entrada *<input id="m-ci-inicio" type="date" value="${c.fechaInicio || todayISO()}" ${facturaPagada ? 'disabled' : ''} /></label>
+      <label>Fecha salida<input id="m-ci-fin" type="date" value="${c.fechaFin || ''}" ${facturaPagada ? 'disabled' : ''} /></label>
+      <label class="full">Descripción<input id="m-ci-desc" type="text" value="${esc(c.descripcion || '')}" placeholder="Revisión, cambio aceite, frenos..." ${facturaPagada ? 'disabled' : ''} /></label>
       <label>Estado
-        <select id="m-ci-estado">
+        <select id="m-ci-estado" ${facturaPagada ? 'disabled' : ''}>
           ${ESTADOS_CITA.map(e => `<option value="${e}" ${(c.estado || 'Pendiente') === e ? 'selected' : ''}>${e}</option>`).join('')}
         </select>
       </label>
@@ -493,6 +500,22 @@ export function openCitaModal(existing, onSave, onDelete, citaKey = null) {
       </div>
       <div id="m-ci-vehiculos-list"></div>
       <input type="hidden" id="m-ci-coche-key" value="${initCocheKey}" />
+      <input type="hidden" id="m-ci-v-edit-key" />
+
+      <div id="m-ci-v-edit-section" style="display:none;margin-top:8px;padding:10px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--accent)">
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 8px">Completa los datos del vehículo</p>
+        <div class="form-grid">
+          <label>Tipo
+            <select id="m-ci-v-edit-tipo">
+              ${VEHICLE_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+            </select>
+          </label>
+          <label>Matrícula<input id="m-ci-v-edit-mat" type="text" placeholder="1234 ABC" style="text-transform:uppercase" /></label>
+          <label>Marca<div class="ac-wrap"><input id="m-ci-v-edit-marca" type="text" placeholder="Marca..." autocomplete="off" /></div></label>
+          <label>Modelo<div class="ac-wrap"><input id="m-ci-v-edit-modelo" type="text" placeholder="Modelo..." autocomplete="off" /></div></label>
+          <label>Año<input id="m-ci-v-edit-año" type="number" placeholder="${new Date().getFullYear()}" min="1940" max="${new Date().getFullYear() + 1}" /></label>
+        </div>
+      </div>
 
       <div id="m-ci-new-coche" style="display:none;margin-top:8px;padding:10px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border)">
         <div class="form-grid">
@@ -516,20 +539,42 @@ export function openCitaModal(existing, onSave, onDelete, citaKey = null) {
     </div>
 
     <div class="modal-footer" style="margin-top:16px">
-      ${isEdit ? `<button type="button" class="btn btn-danger" id="m-ci-delete">Eliminar</button>` : ''}
-      <button class="btn btn-secondary" data-modal-cancel>Cancelar</button>
-      <button class="btn btn-primary" data-modal-confirm>Guardar</button>
+      ${isEdit && !facturaPagada ? `<button type="button" class="btn btn-danger" id="m-ci-delete">Eliminar</button>` : ''}
+      <button class="btn btn-secondary" data-modal-cancel>Cerrar</button>
+      ${!facturaPagada ? `<button class="btn btn-primary" data-modal-confirm>Guardar</button>` : ''}
     </div>`,
-    () => {
+    async () => {
+      if (facturaPagada) return;
       const fechaInicio = el('m-ci-inicio').value;
-      if (!fechaInicio) { alert('La fecha de entrada es obligatoria'); return Promise.resolve(); }
+      if (!fechaInicio) { alert('La fecha de entrada es obligatoria'); return; }
+      let clienteKey = el('m-ci-cliente-key').value || null;
+      let cocheKey   = el('m-ci-coche-key').value   || null;
+      if (clienteKey && !cocheKey && state.addCoche) {
+        const ref = await state.addCoche(clienteKey, { tipo: 'Coche', marca: 'Desconocido', modelo: 'Desconocido' });
+        cocheKey = ref.key;
+      }
+      // Guardar datos del vehículo Desconocido si se editaron
+      const editKey = el('m-ci-v-edit-key')?.value;
+      if (editKey && clienteKey && state.updateCoche && el('m-ci-v-edit-section')?.style.display !== 'none') {
+        const marca  = el('m-ci-v-edit-marca').value.trim()  || 'Desconocido';
+        const modelo = el('m-ci-v-edit-modelo').value.trim() || 'Desconocido';
+        const cocheActual = state.clientes[clienteKey]?.coches?.[editKey] || {};
+        await state.updateCoche(clienteKey, editKey, {
+          ...cocheActual,
+          tipo:      el('m-ci-v-edit-tipo').value,
+          matricula: el('m-ci-v-edit-mat').value.trim().toUpperCase() || cocheActual.matricula || null,
+          marca,
+          modelo,
+          año:       parseInt(el('m-ci-v-edit-año').value) || cocheActual.año || null,
+        });
+      }
       return onSave({
         fechaInicio,
         fechaFin:    el('m-ci-fin').value || null,
         descripcion: el('m-ci-desc').value.trim(),
         estado:      el('m-ci-estado').value,
-        clienteKey:  el('m-ci-cliente-key').value || null,
-        cocheKey:    el('m-ci-coche-key').value   || null,
+        clienteKey,
+        cocheKey,
       });
     }
   );
@@ -584,6 +629,26 @@ export function openCitaModal(existing, onSave, onDelete, citaKey = null) {
           renderVehiculos(clienteKey, card.dataset.cocheKey);
         });
       });
+    }
+    // Mostrar formulario de edición si el vehículo seleccionado es Desconocido
+    const editSection = el('m-ci-v-edit-section');
+    if (editSection && !facturaPagada && selectedCocheKey) {
+      const cocheSeleccionado = state.clientes[clienteKey]?.coches?.[selectedCocheKey];
+      if (cocheSeleccionado?.marca === 'Desconocido') {
+        editSection.style.display = '';
+        el('m-ci-v-edit-key').value       = selectedCocheKey;
+        el('m-ci-v-edit-tipo').value      = cocheSeleccionado.tipo     || 'Coche';
+        el('m-ci-v-edit-mat').value       = cocheSeleccionado.matricula || '';
+        el('m-ci-v-edit-marca').value     = '';
+        el('m-ci-v-edit-modelo').value    = '';
+        el('m-ci-v-edit-año').value       = cocheSeleccionado.año      || '';
+      } else {
+        editSection.style.display = 'none';
+        el('m-ci-v-edit-key').value = '';
+      }
+    } else if (editSection) {
+      editSection.style.display = 'none';
+      el('m-ci-v-edit-key').value = '';
     }
   }
 
@@ -675,16 +740,36 @@ export function openCitaModal(existing, onSave, onDelete, citaKey = null) {
     });
   }
 
-  // Estado → fecha fin automática
-  el('m-ci-estado')?.addEventListener('change', () => {
-    const estado = el('m-ci-estado').value;
-    const fin    = el('m-ci-fin');
-    if (estado === 'Completada' && !fin.value) fin.value = todayISO();
-    else if (estado === 'En curso') fin.value = '';
-  });
+  // Comboboxes del formulario de edición de vehículo Desconocido
+  if (!facturaPagada) {
+    setupCombobox('m-ci-v-edit-marca', BRAND_NAMES);
+    setupCombobox('m-ci-v-edit-modelo', []);
+    el('m-ci-v-edit-tipo')?.addEventListener('change', () => {
+      const brands = el('m-ci-v-edit-tipo').value === 'Moto' ? MOTO_BRAND_NAMES : BRAND_NAMES;
+      el('m-ci-v-edit-marca').dataset.options = JSON.stringify(brands);
+      el('m-ci-v-edit-marca').value  = '';
+      el('m-ci-v-edit-modelo').value = '';
+    });
+    el('m-ci-v-edit-marca')?.addEventListener('input', () => {
+      const brands = el('m-ci-v-edit-tipo').value === 'Moto' ? MOTO_BRANDS : CAR_BRANDS;
+      const models = (brands[el('m-ci-v-edit-marca').value] || []).filter(m => m !== 'Desconocido');
+      el('m-ci-v-edit-modelo').dataset.options = JSON.stringify([...models, 'Desconocido']);
+      el('m-ci-v-edit-modelo').value = '';
+    });
+  }
+
+  // Estado → fecha fin automática (solo si no está bloqueada)
+  if (!facturaPagada) {
+    el('m-ci-estado')?.addEventListener('change', () => {
+      const estado = el('m-ci-estado').value;
+      const fin    = el('m-ci-fin');
+      if (estado === 'Completada' && !fin.value) fin.value = todayISO();
+      else if (estado === 'En curso') fin.value = '';
+    });
+  }
 
   // Botón eliminar
-  if (isEdit && onDelete) {
+  if (isEdit && !facturaPagada && onDelete) {
     el('m-ci-delete')?.addEventListener('click', () => {
       closeModal();
       onDelete();

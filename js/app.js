@@ -95,8 +95,9 @@ async function initApp() {
   });
 
   function startListeners(uid) {
-    state.addCliente = data => addCliente(uid, data);
-    state.addCoche   = (clienteKey, data) => addCoche(uid, clienteKey, data);
+    state.addCliente    = data => addCliente(uid, data);
+    state.addCoche      = (clienteKey, data) => addCoche(uid, clienteKey, data);
+    state.updateCoche   = (clienteKey, cocheKey, data) => updateCoche(uid, clienteKey, cocheKey, data);
     if (unsubClientes) unsubClientes();
     unsubClientes = subscribeClientes(uid, clientes => {
       state.clientes = clientes;
@@ -106,6 +107,7 @@ async function initApp() {
       const current = state.viewHistory[state.viewHistory.length - 1];
       if (current === 'cliente') renderClienteDetail(state.selectedClienteKey);
       else if (current === 'coche') renderCocheDetail(state.selectedClienteKey, state.selectedCocheKey);
+      if (state.activeTab === 'calendario') renderAgenda();
     });
 
     if (unsubCitas) unsubCitas();

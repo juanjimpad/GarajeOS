@@ -4,7 +4,7 @@ export const state = {
   citas: {},
   calendarYear: new Date().getFullYear(),
   calendarMonth: new Date().getMonth(),
-  activeTab: 'clientes',
+  activeTab: 'calendario',
   selectedClienteKey: null,
   selectedCocheKey: null,
   viewHistory: ['list'],  // 'list' | 'cliente' | 'coche'
