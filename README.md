@@ -12,6 +12,7 @@ Aplicación web para la gestión integral de un taller mecánico. Diseñada para
 ## Características
 
 ### Gestión de datos
+
 - **Árbol de gestión** — Estructura jerarquizada Clientes → Vehículos → Facturas. Cada cliente agrupa sus vehículos y cada vehículo su historial completo de facturas.
 - **Buscador instantáneo** — Filtrado en tiempo real por nombre/teléfono en clientes y por matrícula/marca en vehículos.
 - **Gestión de clientes** — Nombre, teléfono, email, NIF/DNI, dirección y notas.
@@ -20,6 +21,7 @@ Aplicación web para la gestión integral de un taller mecánico. Diseñada para
 - **Facturas pagadas en solo lectura** — Cuando una factura está en estado Pagada, todos los campos se bloquean mostrando un banner verde de confirmación.
 
 ### Agenda y citas
+
 - **Calendario mensual** — Vista de citas con chips de colores por estado (Pendiente, En curso, Completada, Cancelada). La cuadrícula se adapta al tamaño de pantalla.
 - **Gestión de citas** — Alta, edición y eliminación de citas con fecha de inicio y fin, descripción, estado y notas. Las citas futuras muestran solo su día de inicio; las abiertas se alargan hasta hoy.
 - **Vinculación cita ↔ factura** — Cada cita genera un UUID único. Al crear una factura desde una cita el concepto se precarga y quedan vinculadas. Si ya existe factura, el botón cambia a "Ver factura".
@@ -28,12 +30,14 @@ Aplicación web para la gestión integral de un taller mecánico. Diseñada para
 - **Chip de cita informativo** — Muestra matrícula, marca, modelo y color del vehículo en el chip del calendario.
 
 ### Suscripción al calendario
+
 - **Calendario iCal privado** — Genera automáticamente un feed `.ics` con todas las citas, actualizado en tiempo real al cambiar los datos.
 - **URL secreta por usuario** — Cada usuario tiene un token UUID único almacenado en Firebase. La URL es privada por oscuridad (imposible de adivinar).
 - **Integración directa** — Botón de suscripción en el footer (solo visible en la pestaña Agenda) que abre un modal con accesos directos a Google Calendar, Apple Calendar y Outlook, además de opción de copiar el enlace.
 - **Regeneración de enlace** — El usuario puede invalidar el enlace actual y generar uno nuevo en cualquier momento.
 
 ### Plataforma
+
 - **Sincronización en la nube** — Datos guardados en Firebase Realtime Database. Los cambios se reflejan instantáneamente en todos los dispositivos.
 - **Acceso seguro** — Login con correo/contraseña o con cuenta de Google. Cada usuario tiene sus datos completamente aislados.
 - **Dark mode** — Selector ☀️🌙 para tema claro, oscuro o automático. La elección persiste entre sesiones.
