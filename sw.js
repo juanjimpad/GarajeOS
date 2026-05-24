@@ -1,5 +1,5 @@
 const CACHE = 'garajeos-v2';
-const ASSETS = ['./', './index.html', './manifest.json', './favicon.svg', './css/style.css', './js/app.js', './js/theme.js', './js/state.js', './js/config.js', './js/utils.js', './js/db.js', './js/render.js', './js/modals.js', './js/firebase.js'];
+const ASSETS = ['./', './index.html', './manifest.json', './favicon.svg', './css/style.css', './js/app.js', './js/theme.js', './js/state.js', './js/config.js', './js/utils.js', './js/db.js', './js/render.js', './js/modals.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));

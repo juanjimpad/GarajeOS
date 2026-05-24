@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { formatDate, formatCurrency, normalizeText, el, escapeHTML as esc } from './utils.js';
-import { FACTURA_ESTADOS, ESTADO_BADGE_CLASS, ESTADO_AVATAR_CLASS, METODO_PAGO_ICON } from './config.js';
+import { ESTADO_BADGE_CLASS, ESTADO_AVATAR_CLASS, METODO_PAGO_ICON } from './config.js';
 
 // ── Sidebar lists ─────────────────────────────────────────
 
@@ -296,7 +296,7 @@ function enlacesInteres(coche) {
     {
       label: 'Piezas en Autodoc',
       desc: 'Buscar recambios por marca y modelo',
-      url: `https://www.autodoc.es/repuestos-para-coches/${marca}/${modelo}`,
+      url: `https://www.autodoc.es/repuestos-para-coches/${encodeURIComponent(marca)}/${encodeURIComponent(modelo)}`,
       icon: '🛒',
     },
     {

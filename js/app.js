@@ -84,10 +84,7 @@ async function initApp() {
     const ics = generateICS(state.citas, state.clientes);
     await updateCalendarExport(calendarSecret, ics);
     state.calendarSecret = calendarSecret;
-    renderCalendarSecretUI();
   }
-
-  function renderCalendarSecretUI() {}
 
   // ── Auth state ────────────────────────────────────────────
 
@@ -500,7 +497,12 @@ function renderUserChip(user) {
   const avatarEl = el('user-avatar');
   const nameEl = el('user-name');
   if (user.photoURL) {
-    avatarEl.innerHTML = `<img src="${user.photoURL}" alt="" referrerpolicy="no-referrer" />`;
+    const img = document.createElement('img');
+    img.src = user.photoURL;
+    img.alt = '';
+    img.referrerPolicy = 'no-referrer';
+    avatarEl.innerHTML = '';
+    avatarEl.appendChild(img);
   } else {
     avatarEl.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
   }

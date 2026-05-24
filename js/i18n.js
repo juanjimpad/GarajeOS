@@ -309,8 +309,6 @@ const translations = {
     'modal.factura.mano_obra':     'Labour',
     'modal.factura.piezas':        'Parts',
     'modal.factura.add_pieza':     '+ Add part',
-    'modal.factura.ixa':           'Apply VAT (21%)',
-    'modal.factura.ixa':           'Apply VAT (21%)',
     'modal.factura.iva':           'Apply VAT (21%)',
     'modal.factura.subtotal':      'Subtotal',
     'modal.factura.total':         'Total',

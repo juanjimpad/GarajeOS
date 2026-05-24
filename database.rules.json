@@ -9,7 +9,7 @@
     "calendarExports": {
       "$secret": {
         ".read": true,
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('users').child(auth.uid).child('calendarSecret').val() === $secret"
       }
     }
   }

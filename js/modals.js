@@ -426,9 +426,6 @@ function findFacturaByCitaId(citaId) {
 export function openCitaModal(existing, onSave, onDelete, citaKey = null) {
   const isEdit = !!existing;
   const c = existing || {};
-  const hasTemp = !!c.vehiculoTemp;
-  const tipoV = (isEdit && !hasTemp && c.clienteKey) ? 'existente' : 'nuevo';
-
   const ESTADOS_CITA = ['Pendiente', 'En curso', 'Completada', 'Cancelada'];
   const initClienteKey = c.clienteKey || '';
   const initCocheKey   = c.cocheKey   || '';
