@@ -190,6 +190,8 @@ export function renderCocheDetail(clienteKey, cocheKey) {
         ? facturas.map(([key, f]) => facturaRow(clienteKey, cocheKey, key, f)).join('')
         : '<p class="list-empty">Sin facturas registradas.</p>'}
     </div>
+
+    ${enlacesInteres(coche)}
   `;
 
 }
@@ -267,6 +269,64 @@ function facturaRow(clienteKey, cocheKey, facturaKey, f, coche = null) {
         ${rightSlot}
       </div>
       ${desglose}
+    </div>`;
+}
+
+// ── Enlaces de interés ────────────────────────────────────
+
+function enlacesInteres(coche) {
+  const marca = (coche.marca || '').toLowerCase().replace(/\s+/g, '-');
+  const modelo = (coche.modelo || '').toLowerCase().replace(/\s+/g, '-');
+  const busqueda = encodeURIComponent(`${coche.marca || ''} ${coche.modelo || ''} ${coche.año || ''}`.trim());
+  const busquedaRep = encodeURIComponent(`${coche.marca || ''} ${coche.modelo || ''} ${coche.año || ''} reparacion mantenimiento`.trim());
+
+  const links = [
+    {
+      label: 'Consulta DGT',
+      desc: 'Datos oficiales del vehículo (requiere Cl@ve)',
+      url: 'https://sede.dgt.gob.es',
+      icon: '🏛️',
+    },
+    {
+      label: 'Historial Carfax',
+      desc: 'Historial de accidentes y propietarios anteriores',
+      url: 'https://www.carfax.eu/es',
+      icon: '📋',
+    },
+    {
+      label: 'Piezas en Autodoc',
+      desc: 'Buscar recambios por marca y modelo',
+      url: `https://www.autodoc.es/repuestos-para-coches/${marca}/${modelo}`,
+      icon: '🛒',
+    },
+    {
+      label: 'Tutoriales en YouTube',
+      desc: 'Vídeos de reparación y mantenimiento',
+      url: `https://www.youtube.com/results?search_query=${busquedaRep}`,
+      icon: '▶️',
+    },
+    {
+      label: 'Buscar en Google',
+      desc: 'Búsqueda general del vehículo',
+      url: `https://www.google.com/search?q=${busqueda}`,
+      icon: '🔍',
+    },
+  ];
+
+  return `
+    <div class="section-header" style="margin-top:24px">
+      <h3>Enlaces de interés</h3>
+    </div>
+    <div class="enlaces-grid">
+      ${links.map(l => `
+        <a class="enlace-card" href="${l.url}" target="_blank" rel="noopener">
+          <span class="enlace-icon">${l.icon}</span>
+          <span class="enlace-info">
+            <span class="enlace-label">${l.label}</span>
+            <span class="enlace-desc">${l.desc}</span>
+          </span>
+          <svg class="enlace-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>`).join('')}
     </div>`;
 }
 
