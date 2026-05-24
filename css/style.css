@@ -974,6 +974,17 @@ body {
   color: var(--accent);
 }
 
+.ac-hint {
+  color: var(--text-muted);
+  font-style: italic;
+  cursor: default;
+}
+
+.ac-hint:hover {
+  background: transparent;
+  color: var(--text-muted);
+}
+
 /* ── Form inputs ─────────────────────────────────────────── */
 input, select, textarea {
   width: 100%;

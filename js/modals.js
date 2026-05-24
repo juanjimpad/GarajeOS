@@ -57,23 +57,31 @@ function setupCombobox(inputId, options) {
     const filtered = filter
       ? opts.filter(o => o.toLowerCase().includes(filter.toLowerCase()))
       : opts;
-    if (!filtered.length) return;
 
     const dd = document.createElement('div');
     dd.className = 'ac-dropdown';
-    filtered.slice(0, 50).forEach(o => {
-      const item = document.createElement('div');
-      item.className = 'ac-item';
-      item.textContent = o;
-      item.addEventListener('mousedown', e => {
-        e.preventDefault();
-        input.value = o;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        closeDropdown();
+
+    if (!filtered.length && filter) {
+      const hint = document.createElement('div');
+      hint.className = 'ac-item ac-hint';
+      hint.textContent = `"${filter}" — valor personalizado`;
+      dd.appendChild(hint);
+    } else {
+      filtered.slice(0, 50).forEach(o => {
+        const item = document.createElement('div');
+        item.className = 'ac-item';
+        item.textContent = o;
+        item.addEventListener('mousedown', e => {
+          e.preventDefault();
+          input.value = o;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          closeDropdown();
+        });
+        dd.appendChild(item);
       });
-      dd.appendChild(item);
-    });
-    wrap.appendChild(dd);
+    }
+
+    if (dd.childElementCount) wrap.appendChild(dd);
   }
 
   function closeDropdown() {
@@ -142,7 +150,7 @@ export function openCocheModal(existing, onSave) {
       <label>Matrícula *<input id="m-matricula" type="text" value="${esc(c.matricula)}" placeholder="Ej: 1234 ABC" style="text-transform:uppercase" /></label>
       <label>Marca *<div class="ac-wrap"><input id="m-marca" type="text" value="${esc(c.marca)}" placeholder="Buscar marca..." autocomplete="off" /></div></label>
       <label>Modelo<div class="ac-wrap"><input id="m-modelo" type="text" value="${esc(c.modelo)}" placeholder="Buscar modelo..." autocomplete="off" /></div></label>
-      <label>Año<input id="m-año" type="number" value="${c.año || ''}" min="1990" max="${new Date().getFullYear() + 1}" placeholder="Ej: 2018" /></label>
+      <label>Año<input id="m-año" type="number" value="${c.año || ''}" min="1940" max="${new Date().getFullYear() + 1}" placeholder="Ej: 2018" /></label>
       <label>Color<input id="m-color" type="text" value="${esc(c.color)}" placeholder="Ej: Blanco" /></label>
       <label>Combustible
         <select id="m-combustible">
@@ -181,6 +189,11 @@ export function openCocheModal(existing, onSave) {
 
   setupCombobox('m-marca', brandNames);
   setupCombobox('m-modelo', getModelos(c.marca));
+
+  el('m-marca').addEventListener('input', () => {
+    const modelos = getModelos(el('m-marca').value);
+    el('m-modelo').dataset.options = JSON.stringify(modelos);
+  });
 
   const notasCoche = el('m-notas');
   const autoResizeCoche = () => { notasCoche.style.height = 'auto'; notasCoche.style.height = notasCoche.scrollHeight + 'px'; };
