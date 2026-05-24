@@ -113,28 +113,20 @@ export function renderAgenda() {
     </div>`
   ).join('');
 
-  const secret = state.calendarSecret;
-  const calUrl = secret ? `${location.origin}/calendar/${secret}` : '';
-
   panel.innerHTML = `
     <div class="ag-toolbar">
       <button class="ag-nav" data-action="cal-prev">‹</button>
       <span class="ag-title">${MONTH_NAMES[month]} ${year}</span>
       <button class="ag-nav" data-action="cal-next">›</button>
       <button class="btn btn-sm btn-primary" data-action="add-cita" style="margin-left:auto">+ Cita</button>
+      <button class="btn btn-sm ag-sub-btn" data-action="open-cal-subscription" title="Suscribir calendario">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+        Suscribir
+      </button>
     </div>
     <div class="ag-day-names">
       ${DAY_NAMES.map(d => `<span>${d}</span>`).join('')}
     </div>
     <div class="ag-calendar">${weeksHtml}</div>
-    <div class="ag-cal-sub">
-      <span class="ag-cal-sub-label">Suscripción calendario</span>
-      <div class="ag-cal-sub-row">
-        <input id="cal-subscription-url" class="ag-cal-sub-input" type="text" readonly
-          value="${calUrl}" placeholder="${secret ? '' : 'Cargando…'}" />
-        <button class="btn btn-sm" data-action="copy-cal-url" ${!calUrl ? 'disabled' : ''}>Copiar</button>
-        <button class="btn btn-sm btn-danger-outline" data-action="reset-cal-secret" title="Regenerar enlace">↺</button>
-      </div>
-    </div>
   `;
 }
