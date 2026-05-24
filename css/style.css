@@ -78,7 +78,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   background: var(--bg);
 }
 
@@ -129,7 +130,7 @@ body {
 }
 
 /* ── Main app ────────────────────────────────────────────── */
-.main-app { display: flex; flex-direction: column; height: 100%; }
+.main-app { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 
 /* ── Topbar ──────────────────────────────────────────────── */
 .topbar {
