@@ -80,6 +80,26 @@ async function initApp() {
   let unsubCitas = null;
   let calendarSecret = null;
 
+  async function autoCloseCita(uid, data) {
+    if (!data.citaId) return;
+    const entry = Object.entries(state.citas || {}).find(([, c]) => c.uuid === data.citaId);
+    if (!entry) return;
+    const [citaKey, cita] = entry;
+    let nuevoCitaEstado, fechaFin;
+    if (data.estado === 'Pagada') {
+      nuevoCitaEstado = 'Completada';
+      fechaFin = data.fechaCierre || data.fecha || null;
+    } else if (data.estado === 'Cancelada') {
+      nuevoCitaEstado = 'Cancelada';
+      fechaFin = cita.fechaFin || null;
+    } else {
+      nuevoCitaEstado = 'En curso';
+      fechaFin = null;
+    }
+    if (cita.estado === nuevoCitaEstado) return;
+    await updateCita(uid, citaKey, { ...cita, estado: nuevoCitaEstado, fechaFin });
+  }
+
   async function syncCalendar(uid) {
     if (!calendarSecret) calendarSecret = await getOrCreateCalendarSecret(uid);
     const ics = generateICS(state.citas, state.clientes);
@@ -249,7 +269,10 @@ async function initApp() {
         const cocheKey = target.dataset.cocheKey;
         const facturaKey = target.dataset.key;
         const factura = state.clientes[clienteKey]?.coches?.[cocheKey]?.facturas?.[facturaKey];
-        openFacturaModal(factura, data => updateFactura(uid, clienteKey, cocheKey, facturaKey, data), { clienteKey, cocheKey });
+        openFacturaModal(factura, async data => {
+          await updateFactura(uid, clienteKey, cocheKey, facturaKey, data);
+          await autoCloseCita(uid, data);
+        }, { clienteKey, cocheKey });
         break;
       }
 
@@ -304,7 +327,10 @@ async function initApp() {
           state.citas[citaKey] = citaActualizada;
         }
         const numero = generateFacturaNumber(state.clientes);
-        openFacturaModal(null, data => addFactura(uid, clienteKey, cocheKey, data), {
+        openFacturaModal(null, async data => {
+          await addFactura(uid, clienteKey, cocheKey, data);
+          await autoCloseCita(uid, data);
+        }, {
           numero,
           citaId: citaUuid || null,
           concepto: cita?.descripcion || '',
@@ -320,7 +346,10 @@ async function initApp() {
         const facturaKey = target.dataset.facturaKey;
         const factura    = state.clientes[clienteKey]?.coches?.[cocheKey]?.facturas?.[facturaKey];
         if (!factura) break;
-        openFacturaModal(factura, data => updateFactura(uid, clienteKey, cocheKey, facturaKey, data), { clienteKey, cocheKey });
+        openFacturaModal(factura, async data => {
+          await updateFactura(uid, clienteKey, cocheKey, facturaKey, data);
+          await autoCloseCita(uid, data);
+        }, { clienteKey, cocheKey });
         break;
       }
 
