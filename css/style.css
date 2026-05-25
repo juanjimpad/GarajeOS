@@ -503,6 +503,16 @@ body {
   color: var(--text-sub);
   list-style: none;
 }
+.list-month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.list-month-total {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-sub);
+}
 
 .item-badge {
   font-size: 11px;

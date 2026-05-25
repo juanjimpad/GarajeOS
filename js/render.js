@@ -375,8 +375,24 @@ export function renderFacturasList() {
     html.push(...pendientes.map(i => facturaItem(i)));
   }
   if (resto.length) {
-    html.push(`<li class="list-section-header">Pagadas / Canceladas</li>`);
-    html.push(...resto.map(i => facturaItem(i)));
+    const byMonth = new Map();
+    for (const item of resto) {
+      const fecha = item.factura.fecha || '';
+      const key = fecha.slice(0, 7); // 'YYYY-MM'
+      if (!byMonth.has(key)) byMonth.set(key, []);
+      byMonth.get(key).push(item);
+    }
+    for (const [monthKey, items] of byMonth) {
+      const monthTotal = items.reduce((s, i) => s + (i.factura.total || 0), 0);
+      const label = monthKey
+        ? new Date(monthKey + '-01T00:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+        : 'Sin fecha';
+      html.push(`<li class="list-section-header list-month-header">
+        <span>${label.charAt(0).toUpperCase() + label.slice(1)}</span>
+        <span class="list-month-total">${formatCurrency(monthTotal)}</span>
+      </li>`);
+      html.push(...items.map(i => facturaItem(i)));
+    }
   }
   ul.innerHTML = html.join('');
 }
