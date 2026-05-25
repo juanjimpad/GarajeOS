@@ -387,9 +387,20 @@ export function renderFacturasList() {
       const label = monthKey
         ? new Date(monthKey + '-01T00:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
         : 'Sin fecha';
+      const byMethod = {};
+      for (const item of items) {
+        const m = item.factura.metodoPago || '';
+        if (m) byMethod[m] = (byMethod[m] || 0) + (item.factura.total || 0);
+      }
+      const breakdown = Object.entries(byMethod)
+        .map(([m, t]) => `<span>${METODO_PAGO_ICON[m] || m} ${formatCurrency(t)}</span>`)
+        .join('');
       html.push(`<li class="list-section-header list-month-header">
-        <span>${label.charAt(0).toUpperCase() + label.slice(1)}</span>
-        <span class="list-month-total">${formatCurrency(monthTotal)}</span>
+        <span class="list-month-name">${label.charAt(0).toUpperCase() + label.slice(1)}</span>
+        <div class="list-month-totals">
+          <span class="list-month-total">${formatCurrency(monthTotal)}</span>
+          ${breakdown ? `<span class="list-month-breakdown">${breakdown}</span>` : ''}
+        </div>
       </li>`);
       html.push(...items.map(i => facturaItem(i)));
     }
