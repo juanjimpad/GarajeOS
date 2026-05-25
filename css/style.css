@@ -68,6 +68,30 @@ body {
   padding: 5px 12px;
   letter-spacing: 0.2px;
 }
+
+.update-banner {
+  background: #2563eb;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 12px;
+}
+.update-banner.hidden { display: none; }
+.update-banner-btn {
+  background: #fff;
+  color: #2563eb;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 #app { height: 100%; display: flex; flex-direction: column; }
 
 /* ── Utility ─────────────────────────────────────────────── */

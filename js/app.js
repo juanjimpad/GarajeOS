@@ -526,9 +526,32 @@ function setupStaticUI() {
   bindSearch('search-clientes', 'searchClientes', renderClientesList);
   bindSearch('search-coches', 'searchCoches', renderCochesList);
 
-  // Service Worker
+  // Service Worker + detección de actualización
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch(() => {});
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+      .then(reg => {
+        function showUpdateBanner(worker) {
+          const banner = el('update-banner');
+          if (!banner) return;
+          banner.classList.remove('hidden');
+          banner.querySelector('[data-action="apply-update"]')
+            ?.addEventListener('click', () => worker.postMessage('SKIP_WAITING'), { once: true });
+        }
+
+        if (reg.waiting) showUpdateBanner(reg.waiting);
+
+        reg.addEventListener('updatefound', () => {
+          const sw = reg.installing;
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdateBanner(sw);
+            }
+          });
+        });
+      })
+      .catch(() => {});
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
   }
 }
 
