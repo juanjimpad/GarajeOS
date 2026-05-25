@@ -206,6 +206,12 @@ const translations = {
     'footer.about': 'Acerca de',
     'footer.copy':  'GarajeOS · 2026',
 
+    // Dev banner
+    'banner.dev':         '⚠️ Entorno de desarrollo',
+    'banner.dev.local':   'local',
+    'banner.dev.preview': 'preview',
+    'banner.dev.rama':    'rama',
+
     // Nav
     'nav.back.clientes': 'Clientes',
   },
@@ -416,6 +422,12 @@ const translations = {
     'footer.auto':  'Auto',
     'footer.about': 'About',
     'footer.copy':  'GarajeOS · 2026',
+
+    // Dev banner
+    'banner.dev':         '⚠️ Development environment',
+    'banner.dev.local':   'local',
+    'banner.dev.preview': 'preview',
+    'banner.dev.rama':    'branch',
 
     // Nav
     'nav.back.clientes': 'Clients',

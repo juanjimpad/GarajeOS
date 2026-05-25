@@ -5,6 +5,7 @@ import { renderClientesList, renderCochesList, renderClienteDetail, renderCocheD
 import { openClienteModal, openCocheModal, openFacturaModal, openCitaModal, openConfirm, closeModal } from './modals.js';
 import { renderAgenda } from './agenda.js';
 import { el, generateFacturaNumber } from './utils.js';
+import { t } from './i18n.js';
 import { generateICS } from './ics.js';
 
 initTheme();
@@ -413,11 +414,12 @@ function setupStaticUI() {
   // Banner de entorno de desarrollo
   (function() {
     const host = location.hostname;
-    if (!host.includes('.pages.dev') && !host.includes('workers.dev') && host !== 'localhost') return;
+    if (!host.includes('.pages.dev') && !host.includes('workers.dev') && host !== 'localhost' && host !== '127.0.0.1') return;
+    const isLocal = host === 'localhost' || host === '127.0.0.1';
     const branch = host.split('.')[0];
-    const label = (branch && branch !== 'garajeos') ? `rama: ${branch}` : 'preview';
+    const label = isLocal ? t('banner.dev.local') : (branch && branch !== 'garajeos') ? `${t('banner.dev.rama')}: ${branch}` : t('banner.dev.preview');
     const banner = el('dev-banner');
-    banner.textContent = `⚠️ Entorno de desarrollo · ${label}`;
+    banner.textContent = `${t('banner.dev')} · ${label}`;
     banner.classList.remove('hidden');
   })();
 
