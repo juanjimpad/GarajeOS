@@ -402,7 +402,7 @@ function actualizarTotal() {
   const total = iva ? subtotal * (1 + IVA) : subtotal;
   const fmt = v => v.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
   if (el('m-subtotal')) el('m-subtotal').textContent = fmt(subtotal);
-  if (el('m-iva-row')) el('m-iva-row').style.display = iva ? '' : 'none';
+  if (el('m-iva-row')) el('m-iva-row').style.display = iva ? 'flex' : 'none';
   if (el('m-iva-amount')) el('m-iva-amount').textContent = fmt(subtotal * IVA);
   if (el('m-total-display')) el('m-total-display').textContent = fmt(total);
 }
