@@ -6,6 +6,7 @@ import { openClienteModal, openCocheModal, openFacturaModal, openCitaModal, open
 import { renderAgenda } from './agenda.js';
 import { el, generateFacturaNumber } from './utils.js';
 import { t } from './i18n.js';
+import { APP_VERSION } from './config.js';
 import { generateICS } from './ics.js';
 
 initTheme();
@@ -447,10 +448,17 @@ function setupStaticUI() {
     const isLocal = host === 'localhost' || host === '127.0.0.1';
     const branch = host.split('.')[0];
     const label = isLocal ? t('banner.dev.local') : (branch && branch !== 'garajeos') ? `${t('banner.dev.rama')}: ${branch}` : t('banner.dev.preview');
+    const ver = APP_VERSION.includes('BUILD_') ? '' : ` · ${APP_VERSION}`;
     const banner = el('dev-banner');
-    banner.textContent = `${t('banner.dev')} · ${label}`;
+    banner.textContent = `${t('banner.dev')} · ${label}${ver}`;
     banner.classList.remove('hidden');
   })();
+
+  // Versión en footer
+  if (!APP_VERSION.includes('BUILD_')) {
+    const footerVer = el('footer-version');
+    if (footerVer) footerVer.textContent = ` ${APP_VERSION}`;
+  }
 
   // Mostrar icono suscripción si la pestaña inicial es calendario
   if (state.activeTab === 'calendario') el('btn-cal-subscribe').classList.remove('hidden');

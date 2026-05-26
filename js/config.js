@@ -109,6 +109,8 @@ export const METODO_PAGO_ICON = { Efectivo: '💵', Tarjeta: '💳', Bizum: '�
 
 export const IVA = 0.21;
 
+export const APP_VERSION = 'BUILD_VERSION';
+
 export const PIEZAS_COMUNES = [
   // Aceites y fluidos
   'Aceite de motor 5W30', 'Aceite de motor 5W40', 'Aceite de motor 10W40', 'Aceite de caja de cambios',

@@ -1314,6 +1314,12 @@ label {
   font-size: 12px;
   color: var(--text-sub);
 }
+.app-footer-version {
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  opacity: 0.6;
+  margin-left: 4px;
+}
 
 .footer-info { width: 28px; height: 28px; }
 
