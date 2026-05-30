@@ -1,8 +1,9 @@
 import { state } from './state.js';
 import { el, escapeHTML as esc } from './utils.js';
 
-const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const DAY_NAMES = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const MONTH_NAMES   = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAY_NAMES     = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const DAY_NAMES_L   = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 
 const ESTADO_CLS = {
   'Pendiente':  'cita-pendiente',
@@ -23,6 +24,18 @@ function fromISO(str) {
   return new Date(y, m - 1, d);
 }
 
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+function getMondayOfWeek(date) {
+  const d = new Date(date);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d;
+}
+
 function getCitaLabel(cita) {
   let mat, marca, modelo, color;
   if (cita.vehiculoTemp?.matricula) {
@@ -39,12 +52,9 @@ function getCitaEnd(cita) {
   if (cita.fechaFin) return fromISO(cita.fechaFin);
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const start = fromISO(cita.fechaInicio);
-  // Cita futura sin cerrar: solo su día de inicio
-  // Cita pasada/actual sin cerrar: se alarga hasta hoy
   return start > today ? start : today;
 }
 
-// Devuelve todas las citas activas en un día ISO dado
 function citasForDay(iso, citaEntries) {
   const day = fromISO(iso).getTime();
   return citaEntries.filter(([, cita]) => {
@@ -55,7 +65,32 @@ function citasForDay(iso, citaEntries) {
   });
 }
 
+function toolbar(title) {
+  const view = state.calendarView;
+  return `
+    <div class="ag-toolbar">
+      <button class="ag-nav" data-action="cal-prev">‹</button>
+      <button class="ag-nav ag-today-btn" data-action="cal-today" title="Ir a hoy">Hoy</button>
+      <button class="ag-nav" data-action="cal-next">›</button>
+      <span class="ag-title">${title}</span>
+      <div class="ag-view-toggle">
+        <button class="ag-view-btn${view === 'month' ? ' active' : ''}" data-action="cal-view-month">Mes</button>
+        <button class="ag-view-btn${view === 'week'  ? ' active' : ''}" data-action="cal-view-week">Sem</button>
+        <button class="ag-view-btn${view === 'day'   ? ' active' : ''}" data-action="cal-view-day">Día</button>
+      </div>
+      <button class="btn btn-sm btn-primary" data-action="add-cita">+ Cita</button>
+    </div>
+  `;
+}
+
 export function renderAgenda() {
+  const view = state.calendarView;
+  if (view === 'week') renderWeek();
+  else if (view === 'day') renderDay();
+  else renderMonth();
+}
+
+function renderMonth() {
   const { calendarYear: year, calendarMonth: month, citas } = state;
   const panel = el('panel-calendario');
   if (!panel) return;
@@ -63,11 +98,9 @@ export function renderAgenda() {
   const firstDay = new Date(year, month, 1);
   const lastDay  = new Date(year, month + 1, 0);
 
-  // Primera celda: lunes anterior al día 1
   const startDate = new Date(firstDay);
   startDate.setDate(startDate.getDate() - ((startDate.getDay() + 6) % 7));
 
-  // Última celda: domingo posterior al último día
   const endDate = new Date(lastDay);
   endDate.setDate(endDate.getDate() + (6 - (endDate.getDay() + 6) % 7));
 
@@ -92,14 +125,12 @@ export function renderAgenda() {
         const isStart  = (c) => c.fechaInicio === iso;
 
         const citasHtml = dayCitas.map(([key, cita]) => {
-          const cls     = ESTADO_CLS[cita.estado] || 'cita-pendiente';
-          const label   = getCitaLabel(cita);
-          const ongoing = !cita.fechaFin;
-          const first   = isStart(cita);
-          const cont    = first ? '' : ' ag-chip-cont';
-          const arrow   = ongoing ? (first ? ' ▶' : '') : '';
-          return `<div class="ag-chip${cont} ${cls}"
-            data-action="edit-cita" data-key="${key}" title="${esc(label)}">
+          const cls   = ESTADO_CLS[cita.estado] || 'cita-pendiente';
+          const label = getCitaLabel(cita);
+          const first = isStart(cita);
+          const cont  = first ? '' : ' ag-chip-cont';
+          const arrow = !cita.fechaFin ? (first ? ' ▶' : '') : '';
+          return `<div class="ag-chip${cont} ${cls}" data-action="edit-cita" data-key="${key}" title="${esc(label)}">
             ${esc(label)}${arrow}
           </div>`;
         }).join('');
@@ -114,15 +145,93 @@ export function renderAgenda() {
   ).join('');
 
   panel.innerHTML = `
-    <div class="ag-toolbar">
-      <button class="ag-nav" data-action="cal-prev">‹</button>
-      <span class="ag-title">${MONTH_NAMES[month]} ${year}</span>
-      <button class="ag-nav" data-action="cal-next">›</button>
-      <button class="btn btn-sm btn-primary" data-action="add-cita" style="margin-left:auto">+ Cita</button>
-    </div>
-    <div class="ag-day-names">
-      ${DAY_NAMES.map(d => `<span>${d}</span>`).join('')}
-    </div>
+    ${toolbar(`${MONTH_NAMES[month]} ${year}`)}
+    <div class="ag-day-names">${DAY_NAMES.map(d => `<span>${d}</span>`).join('')}</div>
     <div class="ag-calendar">${weeksHtml}</div>
+  `;
+}
+
+function renderWeek() {
+  const panel = el('panel-calendario');
+  if (!panel) return;
+
+  const anchor = fromISO(state.calendarDate);
+  const monday = getMondayOfWeek(anchor);
+  const days   = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+
+  const today       = toISO(new Date());
+  const citaEntries = Object.entries(state.citas || {});
+
+  const s = days[0], e = days[6];
+  const ms = (d) => MONTH_NAMES[d.getMonth()].slice(0, 3).toLowerCase();
+  const title = s.getMonth() === e.getMonth()
+    ? `${s.getDate()}–${e.getDate()} ${ms(e)} ${e.getFullYear()}`
+    : `${s.getDate()} ${ms(s)} – ${e.getDate()} ${ms(e)} ${e.getFullYear()}`;
+
+  const colsHtml = days.map(day => {
+    const iso     = toISO(day);
+    const isToday = iso === today;
+    const dayCitas = citasForDay(iso, citaEntries);
+
+    const citasHtml = dayCitas.map(([key, cita]) => {
+      const cls    = ESTADO_CLS[cita.estado] || 'cita-pendiente';
+      const label  = getCitaLabel(cita);
+      const cliente = cita.clienteKey ? state.clientes[cita.clienteKey]?.nombre : null;
+      return `<div class="ag-wcell ${cls}" data-action="edit-cita" data-key="${key}" title="${esc(label)}">
+        <span class="ag-wcell-label">${esc(label)}</span>
+        ${cliente ? `<span class="ag-wcell-sub">${esc(cliente)}</span>` : ''}
+      </div>`;
+    }).join('');
+
+    return `<div class="ag-wcol${isToday ? ' ag-today' : ''}" data-action="new-cita-day" data-date="${iso}">
+      <div class="ag-wcol-head">
+        <span class="ag-wcol-dname">${DAY_NAMES[(day.getDay() + 6) % 7]}</span>
+        <span class="ag-wcol-num${isToday ? ' ag-today-num' : ''}">${day.getDate()}</span>
+      </div>
+      <div class="ag-wcol-body">${citasHtml}</div>
+    </div>`;
+  }).join('');
+
+  panel.innerHTML = `
+    ${toolbar(title)}
+    <div class="ag-week-grid">${colsHtml}</div>
+  `;
+}
+
+function renderDay() {
+  const panel = el('panel-calendario');
+  if (!panel) return;
+
+  const anchor = fromISO(state.calendarDate);
+  const iso    = toISO(anchor);
+  const today  = toISO(new Date());
+
+  const citaEntries = Object.entries(state.citas || {});
+  const dayCitas    = citasForDay(iso, citaEntries);
+
+  const dayIdx = (anchor.getDay() + 6) % 7;
+  const title  = `${DAY_NAMES_L[dayIdx]}, ${anchor.getDate()} de ${MONTH_NAMES[anchor.getMonth()].toLowerCase()} de ${anchor.getFullYear()}`;
+
+  const citasHtml = dayCitas.length
+    ? dayCitas.map(([key, cita]) => {
+        const cls    = ESTADO_CLS[cita.estado] || 'cita-pendiente';
+        const label  = getCitaLabel(cita);
+        const cliente = cita.clienteKey ? state.clientes[cita.clienteKey]?.nombre : null;
+        return `<div class="ag-dcard ${cls}" data-action="edit-cita" data-key="${key}">
+          <div class="ag-dcard-bar"></div>
+          <div class="ag-dcard-body">
+            <span class="ag-dcard-label">${esc(label)}</span>
+            ${cliente ? `<span class="ag-dcard-sub">${esc(cliente)}</span>` : ''}
+            <span class="ag-dcard-estado">${esc(cita.estado || 'Pendiente')}</span>
+          </div>
+        </div>`;
+      }).join('')
+    : `<div class="ag-empty">Sin citas para este día
+        <button class="btn btn-sm btn-primary" data-action="new-cita-day" data-date="${iso}" style="margin-top:12px">+ Añadir cita</button>
+       </div>`;
+
+  panel.innerHTML = `
+    ${toolbar(title)}
+    <div class="ag-day-view">${citasHtml}</div>
   `;
 }

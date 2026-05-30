@@ -6,7 +6,7 @@ import { openClienteModal, openCocheModal, openFacturaModal, openCitaModal, open
 import { renderAgenda } from './agenda.js';
 import { el, generateFacturaNumber, escapeHTML as esc } from './utils.js';
 import { t } from './i18n.js';
-import { APP_VERSION } from './config.js';
+import { APP_VERSION, COMMIT_HASH } from './config.js';
 import { generateICS } from './ics.js';
 
 initTheme();
@@ -114,6 +114,16 @@ async function initApp() {
     state.calendarSecret = calendarSecret;
   }
 
+  // Agrupa ráfagas de cambios (carga inicial, ediciones rápidas) en una sola escritura
+  let syncCalendarTimer = null;
+  function scheduleSyncCalendar(uid) {
+    if (syncCalendarTimer) clearTimeout(syncCalendarTimer);
+    syncCalendarTimer = setTimeout(() => {
+      syncCalendarTimer = null;
+      syncCalendar(uid).catch(() => {});
+    }, 1500);
+  }
+
   // ── Auth state ────────────────────────────────────────────
 
   const loadingMessages = [
@@ -143,6 +153,7 @@ async function initApp() {
   let firstDataLoaded = false;
 
   function startLoadingMessages() {
+    if (loadingTimer) clearInterval(loadingTimer);
     const msgEl = el('loading-message');
     if (!msgEl) return;
     const used = new Set();
@@ -218,7 +229,7 @@ async function initApp() {
       if (current === 'cliente') renderClienteDetail(state.selectedClienteKey);
       else if (current === 'coche') renderCocheDetail(state.selectedClienteKey, state.selectedCocheKey);
       if (state.activeTab === 'calendario') renderAgenda();
-      syncCalendar(uid).catch(() => {});
+      scheduleSyncCalendar(uid);
       if (!firstDataLoaded) {
         firstDataLoaded = true;
         showMainApp();
@@ -229,7 +240,7 @@ async function initApp() {
     unsubCitas = subscribeCitas(uid, citas => {
       state.citas = citas;
       if (state.activeTab === 'calendario') renderAgenda();
-      syncCalendar(uid).catch(() => {});
+      scheduleSyncCalendar(uid);
     });
   }
 
@@ -242,7 +253,9 @@ async function initApp() {
     try {
       errEl.classList.add('hidden');
       await signInWithEmailAndPassword(auth, email, pwd);
+      showLoading();
     } catch (e) {
+      showAuth();
       errEl.textContent = friendlyAuthError(e.code);
       errEl.classList.remove('hidden');
     }
@@ -255,11 +268,15 @@ async function initApp() {
         const result = await FirebaseAuthentication.signInWithGoogle();
         const { GoogleAuthProvider, signInWithCredential } = fbAuth;
         const credential = GoogleAuthProvider.credential(result.credential?.idToken);
+        // Mostrar la pantalla de carga en cuanto se cierra el login, sin esperar a onAuthStateChanged
+        showLoading();
         await signInWithCredential(auth, credential);
       } else {
         await signInWithPopup(auth, new GoogleAuthProvider());
+        showLoading();
       }
     } catch (e) {
+      showAuth();
       const errEl = el('auth-error');
       errEl.textContent = friendlyAuthError(e.code);
       errEl.classList.remove('hidden');
@@ -505,18 +522,51 @@ async function initApp() {
       }
 
       case 'cal-prev': {
-        state.calendarMonth--;
-        if (state.calendarMonth < 0) { state.calendarMonth = 11; state.calendarYear--; }
+        if (state.calendarView === 'week') {
+          const d = new Date(state.calendarDate + 'T00:00:00');
+          d.setDate(d.getDate() - 7);
+          state.calendarDate = d.toISOString().split('T')[0];
+        } else if (state.calendarView === 'day') {
+          const d = new Date(state.calendarDate + 'T00:00:00');
+          d.setDate(d.getDate() - 1);
+          state.calendarDate = d.toISOString().split('T')[0];
+        } else {
+          state.calendarMonth--;
+          if (state.calendarMonth < 0) { state.calendarMonth = 11; state.calendarYear--; }
+        }
         renderAgenda();
         break;
       }
 
       case 'cal-next': {
-        state.calendarMonth++;
-        if (state.calendarMonth > 11) { state.calendarMonth = 0; state.calendarYear++; }
+        if (state.calendarView === 'week') {
+          const d = new Date(state.calendarDate + 'T00:00:00');
+          d.setDate(d.getDate() + 7);
+          state.calendarDate = d.toISOString().split('T')[0];
+        } else if (state.calendarView === 'day') {
+          const d = new Date(state.calendarDate + 'T00:00:00');
+          d.setDate(d.getDate() + 1);
+          state.calendarDate = d.toISOString().split('T')[0];
+        } else {
+          state.calendarMonth++;
+          if (state.calendarMonth > 11) { state.calendarMonth = 0; state.calendarYear++; }
+        }
         renderAgenda();
         break;
       }
+
+      case 'cal-today': {
+        const now = new Date();
+        state.calendarDate  = now.toISOString().split('T')[0];
+        state.calendarYear  = now.getFullYear();
+        state.calendarMonth = now.getMonth();
+        renderAgenda();
+        break;
+      }
+
+      case 'cal-view-month': state.calendarView = 'month'; renderAgenda(); break;
+      case 'cal-view-week':  state.calendarView = 'week';  renderAgenda(); break;
+      case 'cal-view-day':   state.calendarView = 'day';   renderAgenda(); break;
     }
   });
 
@@ -566,8 +616,10 @@ function setupStaticUI() {
       <div class="info-body">
         <span class="info-logo">🔧</span>
         <h2>GarajeOS</h2>
-        <p class="info-version">Versión 1.0.2 · 2026</p>
+        <p class="info-version">Versión 1.0.3 · 2026</p>
+        ${COMMIT_HASH ? `<p class="info-commit">build <a href="https://github.com/juanjimpad/GarajeOS/commit/${esc(COMMIT_HASH)}" target="_blank" rel="noopener">${esc(COMMIT_HASH)}</a></p>` : ''}
         <p>Gestión integral de taller mecánico.<br>Clientes, vehículos y facturas en un solo lugar, sincronizados en la nube.</p>
+        <p class="info-contact">Contacto: <a href="mailto:contacto@garajeos.com">contacto@garajeos.com</a></p>
         <div class="info-badges">
           <a href="https://ko-fi.com/juanjimpad" target="_blank" rel="noopener">
             <img src="https://img.shields.io/badge/Support-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white" alt="Ko-fi" />

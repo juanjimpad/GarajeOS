@@ -745,6 +745,8 @@ body {
 .info-item-full .info-value { white-space: pre-wrap; word-break: break-word; }
 .info-label { font-size: 11px; color: var(--text-sub); text-transform: uppercase; letter-spacing: .5px; }
 .info-value { font-size: 14px; font-weight: 500; }
+.info-link { color: var(--accent); text-decoration: none; }
+.info-link:hover { text-decoration: underline; }
 /* ── Section header ──────────────────────────────────────── */
 .section-header {
   display: flex;
@@ -1396,7 +1398,10 @@ label {
 
 .info-body .info-logo { font-size: 48px; display: block; margin-bottom: 8px; }
 .info-body h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-.info-body .info-version { font-size: 12px; color: var(--text-sub); margin-bottom: 16px; }
+.info-body .info-version { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+.info-body .info-commit { font-size: 11px; color: var(--text-placeholder); margin-bottom: 16px; }
+.info-body .info-commit a { color: var(--accent); text-decoration: none; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.info-body .info-commit a:hover { text-decoration: underline; }
 .info-body p { font-size: 14px; color: var(--text-sub); line-height: 1.6; margin-bottom: 16px; }
 
 .info-badges {
@@ -1409,6 +1414,13 @@ label {
 
 .info-badges a { display: inline-flex; }
 .info-badges img { height: 20px; display: block; }
+
+.info-contact {
+  font-size: 13px !important;
+  margin-bottom: 16px;
+}
+.info-contact a { color: var(--accent); text-decoration: none; }
+.info-contact a:hover { text-decoration: underline; }
 
 .danger-zone {
   margin-top: 28px;
@@ -1491,8 +1503,12 @@ label {
   .footer-copy { display: none; }
 
   .ag-day-num { font-size: 12px; }
-  .ag-toolbar { padding: 10px 12px; gap: 6px; }
-  .ag-title { font-size: 15px; }
+  .ag-toolbar { padding: 8px 10px; gap: 5px; flex-wrap: wrap; }
+  .ag-title { font-size: 13px; order: 3; width: 100%; text-align: left; flex: none; }
+  .ag-view-toggle { margin-left: auto; }
+  .ag-week-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .ag-wcol-dname { font-size: 9px; }
+  .ag-wcol-num { font-size: 14px; width: 26px; height: 26px; }
 }
 
 /* ── Agenda / Calendario ─────────────────────────────────── */
@@ -1675,6 +1691,206 @@ label {
 }
 .ag-chip:hover { opacity: 0.8; }
 .ag-chip-cont { opacity: 0.6; font-weight: 400; }
+
+/* ── Toolbar extras ──────────────────────────────────────── */
+.ag-today-btn {
+  width: auto;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ag-view-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ag-view-btn {
+  background: var(--bg-input);
+  border: none;
+  border-left: 1px solid var(--border);
+  color: var(--text-sub);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 10px;
+  height: 32px;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: background .12s, color .12s;
+}
+.ag-view-btn:first-child { border-left: none; }
+.ag-view-btn:hover { background: var(--accent-light); color: var(--accent); }
+.ag-view-btn.active { background: var(--accent); color: #fff; }
+
+/* ── Vista semana ────────────────────────────────────────── */
+.ag-week-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  overflow-y: auto;
+  min-height: 0;
+  border-top: 1px solid var(--border);
+}
+
+.ag-wcol {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  min-height: 120px;
+}
+.ag-wcol:last-child { border-right: none; }
+.ag-wcol:hover { background: var(--accent-light); }
+.ag-wcol.ag-today { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+
+.ag-wcol-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 6px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+}
+
+.ag-wcol-dname {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-sub);
+}
+
+.ag-wcol-num {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+.ag-today-num {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.ag-wcol-body {
+  flex: 1;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ag-wcell {
+  border-radius: 4px;
+  padding: 3px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  transition: opacity .12s;
+}
+.ag-wcell:hover { opacity: 0.8; }
+
+.ag-wcell-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ag-wcell-sub {
+  font-size: 9px;
+  color: rgba(255,255,255,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Vista día ───────────────────────────────────────────── */
+.ag-day-view {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.ag-dcard {
+  display: flex;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: box-shadow .12s, transform .12s;
+}
+.ag-dcard:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.ag-dcard-bar {
+  width: 5px;
+  flex-shrink: 0;
+}
+.ag-dcard.cita-pendiente  .ag-dcard-bar { background: var(--accent); }
+.ag-dcard.cita-en-curso   .ag-dcard-bar { background: #f59e0b; }
+.ag-dcard.cita-completada .ag-dcard-bar { background: #10b981; }
+.ag-dcard.cita-cancelada  .ag-dcard-bar { background: var(--text-sub); }
+
+.ag-dcard-body {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ag-dcard-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ag-dcard-sub {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.ag-dcard-estado {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.ag-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--text-sub);
+  font-size: 14px;
+  text-align: center;
+  padding: 40px 20px;
+}
 
 /* Calendar subscription modal */
 .cal-sub-modal { display: flex; flex-direction: column; gap: 16px; }

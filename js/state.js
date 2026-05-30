@@ -4,6 +4,8 @@ export const state = {
   citas: {},
   calendarYear: new Date().getFullYear(),
   calendarMonth: new Date().getMonth(),
+  calendarView: 'month',
+  calendarDate: new Date().toISOString().split('T')[0],
   activeTab: 'calendario',
   selectedClienteKey: null,
   selectedCocheKey: null,

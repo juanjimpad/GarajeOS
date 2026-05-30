@@ -605,12 +605,13 @@ export function openCitaModal(existing, onSave, onDelete, citaKey = null) {
     if (!clienteKey) { card.innerHTML = ''; return; }
     const cliente = state.clientes[clienteKey];
     if (!cliente) { card.innerHTML = ''; return; }
-    const info = [cliente.telefono, cliente.email].filter(Boolean).join(' · ');
+    const tel = cliente.telefono ? String(cliente.telefono).trim() : '';
+    const telHref = tel ? 'tel:' + tel.replace(/[^\d+]/g, '') : '';
     card.innerHTML = `<div style="padding:8px 10px;border-radius:6px;margin-bottom:2px;
         border:1px solid var(--border);background:var(--bg-secondary);
         border-left:3px solid var(--accent);cursor:default">
       <strong style="font-size:13px">${esc(cliente.nombre || '—')}</strong>
-      ${info ? `<span style="font-size:12px;color:var(--text-muted);margin-left:8px">${esc(info)}</span>` : ''}
+      ${tel ? `<a href="${esc(telHref)}" style="font-size:12px;color:var(--accent);margin-left:8px;text-decoration:none">📞 ${esc(tel)}</a>` : ''}
     </div>`;
   }
 

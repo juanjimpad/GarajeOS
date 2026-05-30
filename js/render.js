@@ -76,8 +76,8 @@ export function renderClienteDetail(clienteKey) {
     </div>
 
     <div class="info-grid">
-      ${infoItem('Teléfono', cliente.telefono)}
-      ${infoItem('Email', cliente.email)}
+      ${infoItem('Teléfono', cliente.telefono, telHref(cliente.telefono))}
+      ${infoItem('Email', cliente.email, cliente.email ? 'mailto:' + cliente.email : null)}
       ${infoItem('Dirección', cliente.direccion)}
       ${infoItem('NIF/DNI', cliente.nif)}
       ${infoItemFull('Notas', cliente.notas)}
@@ -134,9 +134,9 @@ function cocheCard(clienteKey, cocheKey, c) {
         </div>
       </div>
       <div class="coche-meta">
-        <span>${c.año || ''}</span>
-        <span>${c.combustible || ''}</span>
-        <span>${c.kms ? c.kms.toLocaleString('es-ES') + ' km' : ''}</span>
+        <span>${esc(c.año) || ''}</span>
+        <span>${esc(c.combustible) || ''}</span>
+        <span>${typeof c.kms === 'number' ? c.kms.toLocaleString('es-ES') + ' km' : ''}</span>
       </div>
       <div class="coche-facturas-count">${numFacturas} factura${numFacturas !== 1 ? 's' : ''}</div>
     </div>`;
@@ -332,14 +332,22 @@ function enlacesInteres(coche) {
 
 // ── Helpers ───────────────────────────────────────────────
 
-function infoItem(label, value) {
+function infoItem(label, value, href) {
   if (!value) return '';
-  return `<div class="info-item"><span class="info-label">${label}</span><span class="info-value">${esc(value)}</span></div>`;
+  const content = href
+    ? `<a class="info-value info-link" href="${esc(href)}">${esc(value)}</a>`
+    : `<span class="info-value">${esc(value)}</span>`;
+  return `<div class="info-item"><span class="info-label">${label}</span>${content}</div>`;
 }
 
 function infoItemFull(label, value) {
   if (!value) return '';
   return `<div class="info-item info-item-full"><span class="info-label">${label}</span><span class="info-value">${esc(value)}</span></div>`;
+}
+
+function telHref(t) {
+  if (!t) return null;
+  return 'tel:' + String(t).replace(/[^\d+]/g, '');
 }
 
 // ── Sidebar: Facturas ─────────────────────────────────────

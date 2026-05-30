@@ -111,6 +111,9 @@ export const IVA = 0.21;
 
 export const APP_VERSION = 'BUILD_VERSION';
 
+// Hash del commit, inyectado por Vite en build (define). Vacío si se sirve sin bundler.
+export const COMMIT_HASH = typeof __COMMIT_HASH__ !== 'undefined' ? __COMMIT_HASH__ : '';
+
 export const PIEZAS_COMUNES = [
   // Aceites y fluidos
   'Aceite de motor 5W30', 'Aceite de motor 5W40', 'Aceite de motor 10W40', 'Aceite de caja de cambios',
