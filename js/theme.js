@@ -7,9 +7,26 @@ function resolvedTheme(theme) {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
+async function applyNativeStatusBar(resolved) {
+  if (!window.Capacitor?.isNativePlatform()) return;
+  try {
+    const { StatusBar, Style } = await import('@capacitor/status-bar');
+    await StatusBar.setOverlaysWebView({ overlay: false });
+    if (resolved === 'dark') {
+      await StatusBar.setStyle({ style: Style.Dark });
+      await StatusBar.setBackgroundColor({ color: '#1c1c1e' });
+    } else {
+      await StatusBar.setStyle({ style: Style.Light });
+      await StatusBar.setBackgroundColor({ color: '#ffffff' });
+    }
+  } catch (_) {}
+}
+
 function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', resolvedTheme(theme));
+  const resolved = resolvedTheme(theme);
+  document.documentElement.setAttribute('data-theme', resolved);
   updateFooterButtons(theme);
+  applyNativeStatusBar(resolved);
 }
 
 function updateFooterButtons(theme) {

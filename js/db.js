@@ -89,3 +89,12 @@ export function updateFactura(uid, clienteKey, cocheKey, facturaKey, data) {
 export function deleteFactura(uid, clienteKey, cocheKey, facturaKey) {
   return remove(userRef(uid, 'clientes', clienteKey, 'coches', cocheKey, 'facturas', facturaKey));
 }
+
+// ── Eliminación completa de la cuenta ────────────────────
+export async function deleteAllUserData(uid) {
+  const secretSnap = await get(userRef(uid, 'calendarSecret'));
+  if (secretSnap.exists()) {
+    await remove(ref(db, `calendarExports/${secretSnap.val()}`));
+  }
+  await remove(userRef(uid));
+}

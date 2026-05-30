@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { renderClientesList, renderCochesList, renderClienteDetail, renderCocheDetail, renderFacturasList, clearDetail } from './render.js';
 import { openClienteModal, openCocheModal, openFacturaModal, openCitaModal, openConfirm, closeModal } from './modals.js';
 import { renderAgenda } from './agenda.js';
-import { el, generateFacturaNumber } from './utils.js';
+import { el, generateFacturaNumber, escapeHTML as esc } from './utils.js';
 import { t } from './i18n.js';
 import { APP_VERSION } from './config.js';
 import { generateICS } from './ics.js';
@@ -21,6 +21,7 @@ function navigate(view) {
   renderCurrentView();
   updateViewNav();
   el('view-detail').classList.add('active');
+  el('detail-content').scrollTop = 0;
 }
 
 function goBack() {
@@ -74,9 +75,13 @@ async function initApp() {
     addFactura, updateFactura, deleteFactura,
     subscribeCitas, addCita, updateCita, deleteCita,
     getOrCreateCalendarSecret, resetCalendarSecret, updateCalendarExport,
+    deleteAllUserData,
   } = fbDb;
 
-  const { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } = fbAuth;
+  const {
+    signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged,
+    EmailAuthProvider, reauthenticateWithCredential, signInWithCredential, deleteUser,
+  } = fbAuth;
 
   let unsubClientes = null;
   let unsubCitas = null;
@@ -111,17 +116,89 @@ async function initApp() {
 
   // ── Auth state ────────────────────────────────────────────
 
+  const loadingMessages = [
+    'Alineando las ruedas…',
+    'Cambiando el aceite…',
+    'Ajustando el mapeo del motor…',
+    'Calentando bujías…',
+    'Comprobando los frenos…',
+    'Hinchando los neumáticos…',
+    'Revisando los líquidos…',
+    'Cargando la batería…',
+    'Engrasando los ejes…',
+    'Apretando las tuercas…',
+    'Calibrando sensores…',
+    'Equilibrando las ruedas…',
+    'Sustituyendo filtros…',
+    'Reglando válvulas…',
+    'Purgando los frenos…',
+    'Sincronizando carburadores…',
+    'Limpiando inyectores…',
+    'Revisando la correa de distribución…',
+    'Templando el embrague…',
+    'Encerando la carrocería…',
+  ];
+
+  let loadingTimer = null;
+  let firstDataLoaded = false;
+
+  function startLoadingMessages() {
+    const msgEl = el('loading-message');
+    if (!msgEl) return;
+    const used = new Set();
+    function pickMessage() {
+      if (used.size >= loadingMessages.length) used.clear();
+      let i;
+      do { i = Math.floor(Math.random() * loadingMessages.length); } while (used.has(i));
+      used.add(i);
+      return loadingMessages[i];
+    }
+    msgEl.textContent = pickMessage();
+    loadingTimer = setInterval(() => {
+      msgEl.classList.add('fading');
+      setTimeout(() => {
+        msgEl.textContent = pickMessage();
+        msgEl.classList.remove('fading');
+      }, 200);
+    }, 1800);
+  }
+
+  function stopLoadingMessages() {
+    if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+  }
+
+  function showLoading() {
+    el('auth-screen').classList.add('hidden');
+    el('main-app').classList.add('hidden');
+    el('loading-screen').classList.remove('hidden');
+    startLoadingMessages();
+  }
+
+  function showMainApp() {
+    stopLoadingMessages();
+    el('loading-screen').classList.add('hidden');
+    el('auth-screen').classList.add('hidden');
+    el('main-app').classList.remove('hidden');
+  }
+
+  function showAuth() {
+    stopLoadingMessages();
+    el('loading-screen').classList.add('hidden');
+    el('main-app').classList.add('hidden');
+    el('auth-screen').classList.remove('hidden');
+  }
+
   onAuthStateChanged(auth, user => {
     if (user) {
       state.currentUser = user;
-      el('auth-screen').classList.add('hidden');
-      el('main-app').classList.remove('hidden');
+      firstDataLoaded = false;
+      showLoading();
       renderUserChip(user);
       startListeners(user.uid);
     } else {
       state.currentUser = null;
-      el('auth-screen').classList.remove('hidden');
-      el('main-app').classList.add('hidden');
+      firstDataLoaded = false;
+      showAuth();
       if (unsubClientes) { unsubClientes(); unsubClientes = null; }
       if (unsubCitas)    { unsubCitas();    unsubCitas    = null; }
     }
@@ -142,6 +219,10 @@ async function initApp() {
       else if (current === 'coche') renderCocheDetail(state.selectedClienteKey, state.selectedCocheKey);
       if (state.activeTab === 'calendario') renderAgenda();
       syncCalendar(uid).catch(() => {});
+      if (!firstDataLoaded) {
+        firstDataLoaded = true;
+        showMainApp();
+      }
     });
 
     if (unsubCitas) unsubCitas();
@@ -485,7 +566,7 @@ function setupStaticUI() {
       <div class="info-body">
         <span class="info-logo">🔧</span>
         <h2>GarajeOS</h2>
-        <p class="info-version">Versión 1.0 · 2026</p>
+        <p class="info-version">Versión 1.0.2 · 2026</p>
         <p>Gestión integral de taller mecánico.<br>Clientes, vehículos y facturas en un solo lugar, sincronizados en la nube.</p>
         <div class="info-badges">
           <a href="https://ko-fi.com/juanjimpad" target="_blank" rel="noopener">
@@ -497,10 +578,93 @@ function setupStaticUI() {
           <img src="https://img.shields.io/badge/Built%20with-Claude%20AI-blueviolet?logo=anthropic" alt="Built with Claude AI" />
           <img src="https://img.shields.io/badge/License-Commercial-blue.svg" alt="License: Commercial" />
         </div>
+        <div class="danger-zone">
+          <h3 class="danger-zone-title">Zona de peligro</h3>
+          <p class="danger-zone-desc">Elimina tu cuenta y todos tus datos de forma permanente.</p>
+          <button id="btn-delete-account" class="btn btn-danger btn-full">Eliminar mi cuenta</button>
+        </div>
       </div>
     `;
     el('modal-overlay').classList.remove('hidden');
+    el('btn-delete-account').addEventListener('click', openDeleteAccountModal);
   });
+
+  function openDeleteAccountModal() {
+    const user = state.currentUser;
+    if (!user) return;
+    const email = user.email || '';
+    const isGoogle = user.providerData?.some(p => p.providerId === 'google.com');
+    el('modal-title').textContent = 'Eliminar cuenta';
+    el('modal-body').innerHTML = `
+      <div class="delete-account-body">
+        <p class="delete-warning"><strong>Esta acción es irreversible.</strong></p>
+        <p>Se eliminarán de forma permanente:</p>
+        <ul>
+          <li>Tu cuenta de usuario</li>
+          <li>Todos los clientes y vehículos registrados</li>
+          <li>Todas las facturas y citas</li>
+          <li>El enlace de suscripción al calendario</li>
+        </ul>
+        <p>Para confirmar, escribe tu correo:</p>
+        <p class="delete-email-target"><strong>${esc(email)}</strong></p>
+        <input id="delete-confirm-email" type="email" placeholder="Escribe tu correo aquí" autocomplete="off" />
+        ${!isGoogle ? `
+          <p style="margin-top:12px">Confirma tu contraseña:</p>
+          <input id="delete-confirm-password" type="password" placeholder="Contraseña" autocomplete="current-password" />
+        ` : ''}
+        <div id="delete-account-error" class="auth-error hidden" style="margin-top:12px"></div>
+        <div class="delete-actions">
+          <button id="btn-delete-cancel" class="btn btn-secondary">Cancelar</button>
+          <button id="btn-delete-confirm" class="btn btn-danger" disabled>Eliminar definitivamente</button>
+        </div>
+      </div>
+    `;
+    const confirmBtn = el('btn-delete-confirm');
+    const emailInput = el('delete-confirm-email');
+    const pwdInput = el('delete-confirm-password');
+    function update() {
+      const emailOk = emailInput.value.trim().toLowerCase() === email.toLowerCase();
+      const pwdOk = isGoogle || (pwdInput && pwdInput.value.length > 0);
+      confirmBtn.disabled = !(emailOk && pwdOk);
+    }
+    emailInput.addEventListener('input', update);
+    if (pwdInput) pwdInput.addEventListener('input', update);
+    el('btn-delete-cancel').addEventListener('click', closeModal);
+    confirmBtn.addEventListener('click', () => runDeleteAccount({ isGoogle, password: pwdInput?.value || '' }));
+  }
+
+  async function runDeleteAccount({ isGoogle, password }) {
+    const user = state.currentUser;
+    if (!user) return;
+    const errEl = el('delete-account-error');
+    const confirmBtn = el('btn-delete-confirm');
+    errEl.classList.add('hidden');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Eliminando…';
+    try {
+      if (isGoogle) {
+        if (Capacitor.isNativePlatform()) {
+          const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+          const result = await FirebaseAuthentication.signInWithGoogle();
+          const credential = GoogleAuthProvider.credential(result.credential?.idToken);
+          await reauthenticateWithCredential(user, credential);
+        } else {
+          await signInWithPopup(auth, new GoogleAuthProvider());
+        }
+      } else {
+        const credential = EmailAuthProvider.credential(user.email, password);
+        await reauthenticateWithCredential(user, credential);
+      }
+      await deleteAllUserData(user.uid);
+      await deleteUser(user);
+      closeModal();
+    } catch (e) {
+      errEl.textContent = friendlyAuthError(e.code) + ` (${e.code || 'sin código'})`;
+      errEl.classList.remove('hidden');
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Eliminar definitivamente';
+    }
+  }
 
   // Botón volver
   el('btn-back').addEventListener('click', goBack);
@@ -518,7 +682,9 @@ function setupStaticUI() {
       document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       state.activeTab = btn.dataset.tab;
-      el(`panel-${btn.dataset.tab}`).classList.add('active');
+      const panel = el(`panel-${btn.dataset.tab}`);
+      panel.classList.add('active');
+      panel.scrollTop = 0;
       el('btn-cal-subscribe').classList.toggle('hidden', btn.dataset.tab !== 'calendario');
       if (btn.dataset.tab === 'calendario') renderAgenda();
     });
