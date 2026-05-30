@@ -616,7 +616,7 @@ function setupStaticUI() {
       <div class="info-body">
         <span class="info-logo">🔧</span>
         <h2>GarajeOS</h2>
-        <p class="info-version">Versión 1.0.3 · 2026</p>
+        <p class="info-version">Versión 1.0.3a · 2026</p>
         ${COMMIT_HASH ? `<p class="info-commit">build <a href="https://github.com/juanjimpad/GarajeOS/commit/${esc(COMMIT_HASH)}" target="_blank" rel="noopener">${esc(COMMIT_HASH)}</a></p>` : ''}
         <p>Gestión integral de taller mecánico.<br>Clientes, vehículos y facturas en un solo lugar, sincronizados en la nube.</p>
         <p class="info-contact">Contacto: <a href="mailto:contacto@garajeos.com">contacto@garajeos.com</a></p>
