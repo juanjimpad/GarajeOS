@@ -384,6 +384,7 @@ export function renderFacturasList() {
     }
     for (const [monthKey, items] of byMonth) {
       const monthTotal = items.reduce((s, i) => s + (i.factura.total || 0), 0);
+      const monthManoObra = items.reduce((s, i) => s + (i.factura.manoDeObra || 0), 0);
       const label = monthKey
         ? new Date(monthKey + '-01T00:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
         : 'Sin fecha';
@@ -395,10 +396,14 @@ export function renderFacturasList() {
       const breakdown = Object.entries(byMethod)
         .map(([m, t]) => `<span>${METODO_PAGO_ICON[m] || m} ${formatCurrency(t)}</span>`)
         .join('');
+      const manoObraLine = monthManoObra > 0
+        ? `<span class="list-month-mano-obra">🔧 ${formatCurrency(monthManoObra)}</span>`
+        : '';
       html.push(`<li class="list-section-header list-month-header">
         <span class="list-month-name">${label.charAt(0).toUpperCase() + label.slice(1)}</span>
         <div class="list-month-totals">
           <span class="list-month-total">${formatCurrency(monthTotal)}</span>
+          ${manoObraLine}
           ${breakdown ? `<span class="list-month-breakdown">${breakdown}</span>` : ''}
         </div>
       </li>`);
